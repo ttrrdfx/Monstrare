@@ -1,48 +1,76 @@
-# Agent 指令
+# Monstrare 專案指引
 
-本專案使用 Monstrare。請遵循
-`ai/process/workflow.md` 中的共用流程。
+本文件只規範 AI 在此 repository 中的工作方式，不改變應用程式、
+建置流程或既有產品行為。
 
-## 操作規則
+使用者在目前對話中的明確要求優先。除非使用者要求，或符合下方啟用條件，
+否則不要因本文件額外建立規格、任務卡、mockup 或流程產出物。
 
-- 不得根據模糊的需求實作非小型（non-trivial）變更。
-- 從情境探索（context discovery）與任務專屬的情境包（context pack）開始。
-- 實作前使用 `ai/process/definition-of-ready.md`。
-- 宣告完成前使用 `ai/process/definition-of-done.md`。
-- UI 變更需要畫面規格與 mockup 決策紀錄（以 `ai/templates/screen-spec.md`、`ai/templates/mockup-decision.md` 為範本，產出到 `ai/artifacts/<Epic>/`），並先對照 `ai/context/design-system.md`：重用既有 design token 與元件，缺的元件照既有風格補做並登記回元件庫 inventory。
-- 範本（`ai/templates/`）唯讀；所有填寫完成的產出物依 `ai/artifacts/README.md` 的慣例存放。
-- 任何 mockup 或前端視覺實作，套用 `ai/skills/design-craft.md` 的設計工藝紀律，交付前對照 `ai/checklists/design-review-checklist.md`。
-- Epic 0 的 UI 設計系統須依五階段（框架 → 風格 → design token → 元件庫 → 版面）分關卡展開，不得一步到位直接畫版面（見 `ai/skills/project-kickoff.md` 步驟 2a）。
-- 高風險變更需要架構、安全性與測試審查關卡（review gate）。
-- 優先採用既有專案模式，而非新增抽象層。
-- 將變更範圍限制在已核准的任務卡（task card）內。
-- 不得在未告知的情況下變更不相關的檔案。
-- 提供驗證證據：指令、輸出結果、UI 的螢幕截圖，以及已知的殘留風險。
+## 基本規則
 
-## 必要流程
+所有程式碼變更都應：
 
-若是全新專案、還沒有 Epic/User Story 待辦清單，先執行 `project-kickoff` 流程，
-把專案拆解成 Epic → User Story → Task 並建立看板卡片，再對每張任務卡套用下方流程。
+- 先閱讀與任務直接相關的最小檔案範圍。
+- 優先沿用既有架構、程式風格、design token 與元件。
+- 保持變更範圍小，不修改不相關檔案。
+- 不覆寫使用者已有或尚未提交的變更。
+- 不在未取得明確指示時新增 production dependency、執行遷移、
+  更改公開 API、刪除資料或進行其他難以復原的操作。
+- 執行與變更相稱的測試、lint、typecheck 或 build。
+- 無法執行驗證時，清楚說明原因與殘留風險。
 
-1. 若 `ai/context/project-map.md` 存在，先閱讀它。
-2. 若專案情境缺失或過時，執行 project-search 工作流程。
-3. 對於新功能，建立或更新功能規格書。
-4. 對於 UI 工作，產出多個 mockup 變體並等待人工選擇。
-5. 產出 AI-ready 的任務卡。
-6. 一次實作一張已核准的任務卡。
-7. 執行驗證。
-8. 執行審查關卡。
-9. 彙整證據並在需要時請求人工驗收。
+## 流程分級
 
-## 審查準則
+### 小型且明確的工作
 
-審查程式碼時，優先關注：
+例如 typo、文件、小型 bug、單一測試或局部樣式修正：
 
-- 功能性錯誤與回歸問題。
+- 可以直接調查、實作及驗證。
+- 不需要建立 Epic、User Story、任務卡、規格或 mockup。
+- 不需要等待額外人工核准，除非工作涉及破壞性操作或重要產品決策。
+
+### 非小型新功能或需求仍然模糊
+
+只有在工作涉及多個元件、跨系統行為、重要產品選擇或需求不明確時：
+
+- 參考 `ai/process/workflow.md`。
+- 依需要使用 `ai/process/context-protocol.md`。
+- 實作前以 `ai/process/definition-of-ready.md` 檢查必要資訊。
+- 若缺少會實質改變方案的決策，先向使用者確認。
+
+不要僅因任務尚未存在於 `tools/kanban/` 就阻止使用者明確要求的工作。
+只有使用者要求使用看板，或任務已由看板追蹤時，才建立或更新任務卡。
+
+### UI 工作
+
+- 小型視覺修正可直接實作，但應遵循 `ai/context/design-system.md`。
+- 新畫面、重大版面或互動流程才使用畫面規格及 mockup 關卡。
+- 需要 mockup 時，使用 `ai/templates/screen-spec.md` 與
+  `ai/templates/mockup-decision.md`，產出放在 `ai/artifacts/<Epic>/`。
+- UI 變更在可行時提供截圖驗證；若環境無法截圖，說明替代驗證方式。
+
+### 高風險工作
+
+涉及身分驗證、授權、密鑰、金流、檔案安全、網路邊界、
+資料庫遷移、基礎設施或跨服務契約時：
+
+- 使用 `ai/process/review-gates.md`。
+- 在執行不可逆操作前確認範圍、備份與回滾方式。
+- 提供安全性、測試與殘留風險說明。
+
+## 全新專案
+
+只有當使用者要求規劃全新專案，或明確要求建立完整 backlog 時，
+才使用 `ai/skills/project-kickoff.md` 建立 Epic、User Story、Task 與看板資料。
+
+## Code Review
+
+進行程式碼審查時，優先檢查：
+
+- 功能錯誤與回歸。
 - 安全性與隱私風險。
-- 身分驗證（auth）、權限、密鑰（secret）、檔案、網路與金流邊界。
-- 資料驗證與錯誤處理。
-- 可維護性、重複程式碼與架構偏移（architectural drift）。
-- 缺失的測試或薄弱的驗證。
+- 驗證、授權與錯誤處理。
+- 架構偏移及不必要的複雜度。
+- 缺失或不足的測試。
 
-發現的問題應盡可能包含檔案與行號參照。
+發現問題時，盡可能附上檔案與行號。

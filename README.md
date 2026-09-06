@@ -1,6 +1,6 @@
 # Monstrare
 
-[English](README.md) | **繁體中文**
+[English](README%20en_us.md) | **繁體中文**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -14,6 +14,21 @@
 
 ![看板畫面](tools/kanban/docs/board-screenshot.png)
 ![藍圖畫面](tools/kanban/docs/roadmap-screenshot.png)
+
+## 此版本做了哪些客製變更
+
+這個 repository 以原版 Monstrare `a187710` 為基準，完成了一批實際的系統改善：
+
+- 將藍圖從直向清單升級為「Epic 導覽 + 可縮放、平移、收合的聚焦樹」。
+- 加入鍵盤與觸控操作、ARIA、行動版版面，以及 loading／empty／error／唯讀狀態。
+- 新增本機 SSE 即時同步；API、直接 JSON 編輯或 git 替換後，已開啟頁籤會自動更新。
+- 加入斷線重連、請求競態保護與詳情視窗未儲存輸入保護。
+- 將 Agent 規則改為依工作規模與風險分級，不再強迫小修正走完整規格流程。
+- 新增 17 項自動測試、UI 驗證紀錄與可直接執行的 `npm test`／`npm run check`。
+
+完整的逐項差異、檔案位置、驗證方式與限制請見
+[`CUSTOMIZATIONS.md`](CUSTOMIZATIONS.md)。這批工作的作用中 task 已清空，規格與驗證
+則保留在 `ai/artifacts/看板體驗改善/` 作為歷史紀錄。
 
 ## 解決什麼問題
 
@@ -54,14 +69,13 @@ UI 工作由兩個互補的層次把關——只有流程會做出「合規但�
 
 出自 `AGENTS.md`，任何 agent 動手做事之前都要先讀：
 
-- 不得根據模糊需求做非小型變更。
-- 從情境探索開始，不能靠假設。
-- 實作前要符合 `definition-of-ready.md`，宣告完成前要符合 `definition-of-done.md`。
-- UI 變更需要 `screen-spec.md` + `mockup-decision.md`，重用 `ai/context/design-system.md` 的設計系統，並遵循 `design-craft` 的視覺紀律。
-- 高風險變更需要架構 + 安全性 + 測試審查。
-- 優先沿用既有模式，而非新增抽象層。
-- 變更範圍限制在已核准任務卡內；動了不相關檔案要說清楚。
-- 沒有證據不能宣稱完成：指令、輸出、截圖、殘留風險。
+- 小型明確工作可直接處理；非小型、跨系統或需求模糊時才啟動完整治理流程。
+- 從最小範圍的情境探索開始，優先沿用既有架構、風格、token 與元件。
+- 只有看板已追蹤或使用者要求時才建立 task，不以缺少 task 阻擋明確工作。
+- 新畫面或重大互動流程需要畫面規格與 mockup；小型 UI 修正可直接實作並驗證。
+- 高風險變更需要安全、備份與回滾規劃，不可逆操作前要確認範圍。
+- 保留使用者既有變更，不修改不相關檔案，也不擅自新增 production dependency。
+- 交付時提供與風險相稱的測試、lint、build、截圖或殘留風險說明。
 
 Agent 的輸出從來都不等於核准——每個關卡仍需人工簽核（見 `ai/process/review-gates.md`）。
 
@@ -98,6 +112,7 @@ ai/skills/                    # .claude/skills 與 .codex/skills 共用的 skill
 ai/artifacts/                 # 填寫完成的規格、mockup、任務卡、驗證報告（一個 Epic 一個資料夾）
 ai/examples/                  # 任務與功能產物範例
 tools/kanban/                 # 實作 ai/process/kanban.md 的本地看板
+CUSTOMIZATIONS.md             # 此 fork 相對原版的完整客製變更紀錄
 ```
 
 ## 快速開始
@@ -105,12 +120,12 @@ tools/kanban/                 # 實作 ai/process/kanban.md 的本地看板
 **要開新專案？** 直接把這個 repo clone 下來，在裡面直接開發——`AGENTS.md`、`CLAUDE.md` 與整套 `ai/` 工具已經在根目錄了。
 
 ```bash
-git clone https://github.com/pjwang2022/Monstrare.git my-project
+git clone https://github.com/ttrrdfx/Monstrare.git my-project
 cd my-project
 rm -rf .git && git init   # 建立你自己的 git 歷史
 ```
 
-接著把它變成你的：把 `README.md`／`README.zh-TW.md` 換成你自己專案的說明、改掉 `package.json` 的 `name`，並可視需要刪除 `scripts/install-into-project.sh` 與 `tools/kanban/` 底下的看板選型史料（`mockups/`、`mockup-decision.md`、`screen-spec.md`）——那些屬於 Monstrare 本身，不是你的專案產物。
+接著把它變成你的：把 `README.md`／`README en_us.md` 換成你自己專案的說明、改掉 `package.json` 的 `name`，並可視需要刪除 `scripts/install-into-project.sh` 與 `tools/kanban/` 底下的看板選型史料（`mockups/`、`mockup-decision.md`、`screen-spec.md`）——那些屬於 Monstrare 本身，不是你的專案產物。
 
 接著在這個資料夾裡開 Claude Code 或 Codex，直接講你想做什麼就好：
 
@@ -160,8 +175,18 @@ npm run kanban   # 開 http://127.0.0.1:4420
 - **新增卡片**——點任一車道底部的「+ 新增卡片」，id 由 server 自動配號。
 - **移動卡片**——拖到別的車道就改變階段，同車道內拖曳可調整順序。
 - **編輯詳情**——點卡片開啟詳情面板：owner、risk、agent、Readiness 勾選、Review Gates、留言。
-- **依 Epic/User Story 看進度**——切到右上角「藍圖」分頁。
+- **依 Epic/User Story 看進度**——切到右上角「藍圖」分頁，以聚焦樹瀏覽、縮放、平移與收合分支。
+- **即時同步**——同一個本機 server 下的頁籤會自動反映 API 或 JSON 檔案變更；詳情輸入尚未儲存時不會被外部更新覆寫。
 
 ![藍圖畫面](tools/kanban/docs/roadmap-screenshot.png)
 
 所有操作都即時寫回 `cards/*.json`——沒有儲存按鈕、沒有資料庫；`git commit`／`git push` 就是存檔與分享狀態的方式。完整的欄位規格與 API 說明：[`tools/kanban/README.md`](tools/kanban/README.md)。
+
+## 驗證
+
+需求為 Node.js 20 以上版本，不需要安裝 production dependency。
+
+```bash
+npm test        # 執行 17 項看板資料、互動與 SSE 測試
+npm run check   # 測試 + server syntax + 治理檔案完整性
+```

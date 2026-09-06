@@ -6,7 +6,7 @@
 
 ![看板分頁截圖](docs/board-screenshot.png)
 
-**藍圖分頁**（Epic → User Story → Task 的完成度總覽，資料來自 [`epics.json`](epics.json)）：
+**藍圖分頁**（Epic 導覽 + User Story → Task 聚焦樹，資料來自 [`epics.json`](epics.json)）：
 
 ![藍圖分頁截圖](docs/roadmap-screenshot.png)
 
@@ -21,7 +21,7 @@
 頁面右上角有兩個分頁：
 
 - **看板**：6 車道控制塔（上述 Variant A）。
-- **藍圖**：功能模組（Epic）→ 用戶需求（User Story）→ 任務（Task）的階層檢視，每個 Epic／User Story 都會即時算出完成度（`stage === "done"` 的卡片數 / 總卡片數）。資料來自 [`epics.json`](epics.json)，任務卡透過 `epic` / `userStory` 兩個欄位對應回去；卡片若指定了 Epic 但沒指定對應的 User Story，會落在該 Epic 底下的「（未分類任務）」桶，不會憑空消失。
+- **藍圖**：左側（手機為頂部）選擇 Epic，主畫布顯示 Epic → User Story → Task 聚焦樹；支援縮放、平移、回到全景、分支收合與鍵盤導覽。每個 Epic／User Story 都會即時算出完成度（`stage === "done"` 的卡片數 / 總卡片數）。資料來自 [`epics.json`](epics.json)，任務卡透過 `epic` / `userStory` 兩個欄位對應回去；卡片若指定了 Epic 但沒指定對應的 User Story，會落在該 Epic 底下的「（未分類任務）」桶，不會憑空消失。
 
 `epics.json` 與 `cards/` 預設是空的模板狀態。開始一個新專案時，走 `ai/skills/project-kickoff.md` 的流程：先確認技術棧，再逐層讓人工勾選 Epic、User Story，最後把拆好的 Task 一張張寫成 `cards/` 底下的 JSON 檔（或透過本機 server 的 `POST /api/cards`）。
 
@@ -40,7 +40,7 @@ npm run kanban
 - **新增卡片**：點任一車道底部的「+ 新增卡片」，輸入標題即可（id 由 server 自動配號）。
 - **移動卡片**：直接把卡片拖到別的車道（跨欄即改變 `stage`），同欄內拖曳可調整 `order`。
 - **編輯詳情**：點卡片本體開啟詳情面板，可改 owner／risk／agent／Readiness 勾選／Review Gates 勾選／留言等所有欄位。
-- **看整體進度**：切到右上角「藍圖」分頁，依 Epic → User Story 檢視完成度（需先在 [`epics.json`](epics.json) 定義 Epic／User Story）。
+- **看整體進度**：切到右上角「藍圖」分頁，選擇 Epic 後瀏覽聚焦樹；可用工具列、滾輪、拖曳、觸控或鍵盤操作（需先在 [`epics.json`](epics.json) 定義 Epic／User Story）。
 - 所有操作都是即時寫回 `cards/*.json`，沒有「儲存」按鈕；要復原就用 `git checkout` 還原檔案再重新整理頁面。
 
 ## 資料與同步
@@ -48,7 +48,10 @@ npm run kanban
 - 資料來源就是 [`cards/`](cards/) 目錄，**一張卡一個 JSON 檔**，git tracked。
 - 看板上的所有操作（拖曳、勾選 Readiness/Gates、編輯欄位、新增、刪除、留言）即時寫回對應 JSON 檔。
 - 同步 = git：`git commit` / `git push` 就是存檔與分享，多人協作靠 git 合併。
-- 也可以直接改 JSON 檔（或 `git checkout` 還原），重新整理頁面即生效。
+- 也可以直接改 JSON 檔（或 `git checkout` 還原）；server 會透過 SSE 通知已連線的 client 重取資料。
+- `cards/*.json` 與 `epics.json` 的快速連續變更會合併成一則 invalidation 事件，事件不包含卡片內容。
+- 頁首同步狀態會顯示「正在連線／即時同步／重新連線中／同步連線失敗」；斷線後由瀏覽器自動重連，恢復時完整重取 cards 與 epics。
+- 外部變更會自動刷新看板、WIP 與藍圖；若詳情 modal 內仍有未儲存輸入，輸入不會被重繪，待儲存或關閉後才套用最新資料。
 - 新卡片的預設 owner 與留言作者取自本機 `git config user.name`（server 啟動時讀一次，經 `GET /api/config` 提供給前端）；沒設定時 owner 留空、留言作者顯示「匿名」。
 
 ## WIP 上限
@@ -87,6 +90,7 @@ npm run kanban
 | --- | --- | --- |
 | `GET` | `/api/config` | 看板設定（目前只有 `owner`：本機 `git config user.name`，作為新卡 owner 與留言作者的預設值） |
 | `GET` | `/api/epics` | 讀取 [`epics.json`](epics.json)（Epic → User Story 定義，唯讀，沒有寫入 API，要改就直接編輯檔案） |
+| `GET` | `/api/events` | SSE 即時變更事件流；連線先送 `ready`，資料變更送 `change`，閒置時送 heartbeat comment |
 | `GET` | `/api/cards` | 全部卡片（陣列） |
 | `PUT` | `/api/cards/:id` | 覆寫單卡（body 為完整 card） |
 | `PUT` | `/api/cards` | bulk 覆寫（body 為陣列，拖曳排序用） |
@@ -94,6 +98,17 @@ npm run kanban
 | `DELETE` | `/api/cards/:id` | 刪卡（刪檔） |
 
 非法 id / stage / risk 格式一律回 400；PUT/POST body 缺少物件型欄位時由 server 補預設值。
+
+### 即時變更事件
+
+`GET /api/events` 使用 `text/event-stream`。連線建立時先送 `ready`；server API 寫入或直接修改／替換 `cards/*.json`、`epics.json` 時，經短暫 debounce 後送出：
+
+```text
+event: change
+data: {"resources":["cards","epics"]}
+```
+
+`resources` 只會包含 `cards`、`epics`，client 收到後應呼叫既有 GET API 重取資料。server 定期送出 `: heartbeat` comment 維持閒置連線；client 斷線與 server 關閉時會清除連線、watcher 與 timer。
 
 ### dependsOn 硬防呆
 
@@ -107,9 +122,21 @@ npm run kanban
 
 刪除卡片不會自動清除其他卡對它的 `dependsOn` 參照；看板 UI 讀到參照不存在的 id 時會顯示警示，但不會擋任何操作。
 
+## 驗證
+
+```bash
+npm test
+npm run check
+```
+
+`npm test` 執行藍圖資料／佈局、即時同步與 server SSE 測試；`npm run check`
+另外檢查 server 語法和治理套件必要檔案。server 整合測試使用臨時
+`KANBAN_ROOT` 與動態 port，不會改寫真正的 `cards/` 或 `epics.json`。
+
 ## 已知限制（v1）
 
 - 沒有帳號系統，身分只取自本機 git 設定，無法區分同名使用者、也沒有權限控管。
 - `content` / 留言不支援 markdown 渲染，純文字顯示。
-- 沒有多人即時協作（沒有 WebSocket），要靠重新整理頁面看到別人 git pull 後的異動。
-- 手機版尚未特別優化（多欄橫向捲動在小螢幕會更明顯），對應 `screen-spec.md` 的 Mobile 狀態尚待處理。
+- SSE 只通知連到同一個本機 server 的 client；跨機器同步仍需透過 git，衝突也仍由 git 處理。
+- 手機版藍圖已最佳化；六欄看板仍以橫向捲動為主，小螢幕不會改成單欄切換器。
+- 兩位使用者同時儲存同一卡片沒有字段級 merge，採最後成功寫入者的完整卡片狀態。

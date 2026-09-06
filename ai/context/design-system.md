@@ -67,6 +67,9 @@
 | Table | 待補 | 待補 | 待補 | 待補 | 待補 | S4 |
 | Form | 待補 | 待補 | 待補 | 待補 | 待補 | S4 |
 | Toast/Alert | 待補 | 待補 | 待補 | 待補 | 待補 | S4 |
+| Epic Nav | 已實作 | 預設/hover/focus/選取/手機水平捲動 | `--surface*`、`--ink*`、`--accent*` | `tools/kanban/index.html` | `ai/artifacts/看板體驗改善/verification/screenshots/TASK-002-desktop.jpg` | 看板體驗改善 TASK-002 |
+| Mind-map canvas / Hierarchy node / Connector | 已實作 | loading/empty/error/唯讀/收合/行動版 | 現有看板 CSS variables | `tools/kanban/index.html` | `ai/artifacts/看板體驗改善/verification/screenshots/TASK-002-mobile.jpg` | 看板體驗改善 TASK-002 |
+| Sync Status | 已實作 | connecting/live/reconnecting/error | `--ink-dim`、`--good`、`--warn`、`--crit` | `tools/kanban/index.html` | 瀏覽器人工檢視 | 看板體驗改善 TASK-005 |
 
 （「來源階段」記錄這個元件是 S4 初建，還是後續某個功能 Epic 補做並回登的。）
 

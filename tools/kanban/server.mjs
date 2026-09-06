@@ -10,9 +10,13 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 
 const HOST = '127.0.0.1';
-const PORT = 4420;
+const configuredPort = Number(process.env.KANBAN_PORT ?? 4420);
+const PORT = Number.isInteger(configuredPort) && configuredPort >= 0 && configuredPort <= 65535
+  ? configuredPort
+  : 4420;
 
-const ROOT = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
+const MODULE_ROOT = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
+const ROOT = process.env.KANBAN_ROOT ? path.resolve(process.env.KANBAN_ROOT) : MODULE_ROOT;
 const CARDS_DIR = path.join(ROOT, 'cards');
 const INDEX_HTML = path.join(ROOT, 'index.html');
 const EPICS_JSON = path.join(ROOT, 'epics.json');
@@ -43,6 +47,21 @@ const READINESS_KEYS = [
 ];
 const GATE_KEYS = ['product', 'ui', 'architecture', 'security', 'test', 'code_review'];
 const LINK_KEYS = ['featureSpec', 'screenSpec', 'mockupDecision', 'taskCard', 'verificationReport', 'pr'];
+const configuredDebounceMs = Number(process.env.KANBAN_EVENT_DEBOUNCE_MS ?? 80);
+const configuredHeartbeatMs = Number(process.env.KANBAN_HEARTBEAT_MS ?? 15000);
+const EVENT_DEBOUNCE_MS = Number.isFinite(configuredDebounceMs) && configuredDebounceMs >= 0
+  ? configuredDebounceMs
+  : 80;
+const HEARTBEAT_MS = Number.isFinite(configuredHeartbeatMs) && configuredHeartbeatMs > 0
+  ? configuredHeartbeatMs
+  : 15000;
+
+const eventClients = new Set();
+const pendingResources = new Set();
+const watchers = [];
+let changeTimer = null;
+let heartbeatTimer = null;
+let realtimeStarted = false;
 
 /* ── helpers ── */
 
@@ -50,6 +69,103 @@ function sendJson(res, code, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(body);
+}
+
+function writeEvent(res, event, data) {
+  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
+function removeEventClient(res) {
+  eventClients.delete(res);
+}
+
+function broadcastChange() {
+  changeTimer = null;
+  if (pendingResources.size === 0) return;
+  const resources = ['cards', 'epics'].filter((resource) => pendingResources.has(resource));
+  pendingResources.clear();
+  for (const res of eventClients) {
+    if (res.destroyed || res.writableEnded) {
+      removeEventClient(res);
+      continue;
+    }
+    try {
+      writeEvent(res, 'change', { resources });
+    } catch {
+      removeEventClient(res);
+    }
+  }
+}
+
+function queueChange(resource) {
+  pendingResources.add(resource);
+  if (changeTimer) clearTimeout(changeTimer);
+  changeTimer = setTimeout(broadcastChange, EVENT_DEBOUNCE_MS);
+  changeTimer.unref?.();
+}
+
+function handleEvents(req, res) {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive'
+  });
+  res.flushHeaders?.();
+  eventClients.add(res);
+  writeEvent(res, 'ready', {});
+  req.once('close', () => removeEventClient(res));
+  res.once('close', () => removeEventClient(res));
+  res.once('error', () => removeEventClient(res));
+}
+
+function shutdownRealtime() {
+  realtimeStarted = false;
+  if (changeTimer) clearTimeout(changeTimer);
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  changeTimer = null;
+  heartbeatTimer = null;
+  pendingResources.clear();
+  for (const watcher of watchers.splice(0)) watcher.close();
+  for (const res of eventClients) {
+    if (!res.writableEnded) res.end();
+  }
+  eventClients.clear();
+}
+
+function startRealtime() {
+  if (realtimeStarted) return;
+  realtimeStarted = true;
+  try {
+    const cardsWatcher = fs.watch(CARDS_DIR, (_eventType, filename) => {
+      if (filename === null || String(filename).endsWith('.json')) queueChange('cards');
+    });
+    const epicsWatcher = fs.watch(ROOT, (_eventType, filename) => {
+      if (filename === null || String(filename) === path.basename(EPICS_JSON)) queueChange('epics');
+    });
+    watchers.push(cardsWatcher, epicsWatcher);
+    for (const watcher of watchers) {
+      watcher.on('error', (err) => {
+        console.error('[kanban] 檔案監看失敗：' + err.message);
+        shutdownRealtime();
+      });
+    }
+    heartbeatTimer = setInterval(() => {
+      for (const res of eventClients) {
+        if (res.destroyed || res.writableEnded) removeEventClient(res);
+        else {
+          try {
+            res.write(': heartbeat\n\n');
+          } catch {
+            removeEventClient(res);
+          }
+        }
+      }
+    }, HEARTBEAT_MS);
+    heartbeatTimer.unref?.();
+  } catch (err) {
+    shutdownRealtime();
+    throw err;
+  }
 }
 
 function readBody(req) {
@@ -270,6 +386,7 @@ function handlePutOne(res, id, body) {
   if (depErr) return sendJson(res, 400, { error: depErr });
   writeCard(c);
   sendJson(res, 200, c);
+  queueChange('cards');
 }
 
 function handlePutBulk(res, body) {
@@ -287,6 +404,7 @@ function handlePutBulk(res, body) {
   }
   for (const c of list) writeCard(c);
   sendJson(res, 200, { updated: list.length });
+  queueChange('cards');
 }
 
 function handlePost(res, body) {
@@ -326,6 +444,7 @@ function handlePost(res, body) {
   if (depErr) return sendJson(res, 400, { error: depErr });
   writeCard(card);
   sendJson(res, 201, card);
+  queueChange('cards');
 }
 
 function handleDelete(res, id) {
@@ -333,6 +452,7 @@ function handleDelete(res, id) {
   if (!fs.existsSync(file)) return sendJson(res, 404, { error: id + ' 不存在' });
   fs.unlinkSync(file);
   sendJson(res, 200, { deleted: id });
+  queueChange('cards');
 }
 
 /* ── server ── */
@@ -353,6 +473,11 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === '/api/epics') {
       if (req.method === 'GET') return handleEpics(res);
+      return sendJson(res, 405, { error: 'method not allowed' });
+    }
+
+    if (pathname === '/api/events') {
+      if (req.method === 'GET') return handleEvents(req, res);
       return sendJson(res, 405, { error: 'method not allowed' });
     }
 
@@ -383,6 +508,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.on('error', (err) => {
+  shutdownRealtime();
   if (err.code === 'EADDRINUSE') {
     console.error(`[kanban] port ${PORT} 已被占用。請先關掉占用的程序（lsof -i :${PORT}）再重新啟動。`);
   } else {
@@ -392,6 +518,18 @@ server.on('error', (err) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`[kanban] 治理看板 → http://${HOST}:${PORT}`);
+  startRealtime();
+  const address = server.address();
+  const listeningPort = typeof address === 'object' && address ? address.port : PORT;
+  console.log(`[kanban] 治理看板 → http://${HOST}:${listeningPort}`);
   console.log(`[kanban] 資料目錄：${CARDS_DIR}`);
 });
+
+server.on('close', shutdownRealtime);
+
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.once(signal, () => {
+    shutdownRealtime();
+    server.close();
+  });
+}

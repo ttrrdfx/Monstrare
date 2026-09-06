@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>專案管理平台</title>
 <style>
   :root {
@@ -54,6 +59,11 @@
   .brand { display: flex; align-items: baseline; gap: 10px; }
   .brand-name { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; }
   .brand-sub { font-size: 12.5px; color: var(--ink-dim); }
+  .sync-status { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; font-size: 12px; font-weight: 700; color: var(--ink-dim); white-space: nowrap; }
+  .sync-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+  .sync-status[data-state="live"]::before { background: var(--good); }
+  .sync-status[data-state="error"] { color: var(--crit); }
+  .sync-status[data-state="error"]::before { background: var(--crit); }
 
   .view-tabs { display: flex; gap: 4px; background: var(--surface-sunken); border-radius: 10px; padding: 3px; }
   .view-tabs button { border: none; background: transparent; color: var(--ink-dim); font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 8px; transition: background-color .15s ease, color .15s ease; }
@@ -149,36 +159,85 @@
   .danger-btn { border: 1px solid var(--crit-soft); background: var(--crit-soft); color: var(--crit); border-radius: 8px; padding: 7px 14px; font-size: 12.5px; font-weight: 700; }
   .danger-btn:hover { background: var(--crit); color: #fff; }
 
-  /* ── roadmap ── */
-  .roadmap { padding: 20px 28px 40px; display: flex; flex-direction: column; gap: 20px; max-width: 1100px; }
+  /* ── roadmap: Variant C focused tree ── */
   .progress-bar { height: 6px; border-radius: 4px; background: var(--surface-sunken); overflow: hidden; }
   .progress-bar > span { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
-  .epic-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-card); }
-  .epic-head { padding: 16px 20px 14px; display: flex; flex-direction: column; gap: 8px; }
-  .epic-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-  .epic-name { font-size: 15.5px; font-weight: 700; }
-  .epic-frac { font-size: 13px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
-  .epic-def { font-size: 12.5px; color: var(--ink-dim); line-height: 1.55; max-width: 80ch; }
-  .epic-body { padding: 4px 20px 18px; display: flex; flex-direction: column; gap: 16px; }
-  .story-block { border-top: 1px solid var(--line); padding-top: 14px; }
-  .story-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
-  .story-name { font-size: 13px; font-weight: 700; }
-  .story-frac { font-size: 11.5px; color: var(--ink-dim); font-weight: 700; flex-shrink: 0; }
-  .story-def { font-size: 12px; color: var(--ink-faint); margin-bottom: 8px; line-height: 1.5; }
-  .story-progress { margin-bottom: 10px; }
-  .story-tasks { display: flex; flex-direction: column; gap: 1px; }
-  .task-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; font-size: 12.5px; cursor: pointer; border: none; background: transparent; width: 100%; text-align: left; }
-  .task-row:hover { background: var(--surface-sunken); }
-  .task-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .task-id { font-size: 10.5px; color: var(--ink-faint); flex-shrink: 0; width: 62px; }
-  .task-title { flex: 1; }
-  .task-title.is-done { color: var(--ink-dim); text-decoration: line-through; text-decoration-color: var(--line-strong); }
-  .no-tasks { font-size: 12px; color: var(--ink-faint); padding: 4px 8px; }
+  .roadmap-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: calc(100vh - 68px); }
+  .epic-nav { background: var(--surface); border-right: 1px solid var(--line); padding: 24px 16px; }
+  .epic-nav-title { font-size: 16px; margin: 0 8px 20px; }
+  .epic-nav-list { display: flex; flex-direction: column; gap: 8px; }
+  .epic-nav-item { border: 0; background: transparent; border-radius: 12px; padding: 16px; text-align: left; min-width: 0; }
+  .epic-nav-item:hover { background: var(--surface-sunken); }
+  .epic-nav-item.is-active { background: var(--accent-soft); color: var(--accent); }
+  .epic-nav-name { display: block; font-size: 14px; font-weight: 700; line-height: 1.3; }
+  .epic-nav-progress { display: block; font-size: 11px; color: var(--ink-dim); margin-top: 8px; }
+  .roadmap-main { min-width: 0; overflow: hidden; }
+  .roadmap-head { min-height: 76px; padding: 16px 28px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .roadmap-head h2 { font-size: 20px; line-height: 1.25; }
+  .roadmap-head p { font-size: 12px; color: var(--ink-dim); line-height: 1.5; margin-top: 4px; max-width: 72ch; }
+  .roadmap-mode { flex-shrink: 0; font-size: 12px; color: var(--ink-dim); font-weight: 700; }
+  .roadmap-mode::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--good); margin-right: 8px; }
+  .roadmap-mode.is-error { color: var(--warn); }
+  .roadmap-mode.is-error::before { background: var(--warn); }
+  .roadmap-canvas { position: relative; min-height: calc(100vh - 144px); overflow: hidden; touch-action: none; cursor: grab; background-image: radial-gradient(var(--line-strong) .7px, transparent .7px); background-size: 24px 24px; }
+  .roadmap-canvas.is-panning { cursor: grabbing; user-select: none; }
+  .tree-stage { position: absolute; left: 0; top: 0; min-width: 1040px; min-height: 620px; transform-origin: 0 0; will-change: transform; }
+  .tree-svg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .tree-edge { fill: none; stroke: var(--line-strong); stroke-width: 2; }
+  .tree-node { position: absolute; z-index: 1; border: 0; background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-card); padding: 16px; text-align: left; overflow: hidden; }
+  button.tree-node:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-1px); }
+  .tree-node-root { width: 232px; min-height: 132px; border-left: 4px solid var(--accent); padding: 20px; }
+  .tree-node-story { width: 248px; min-height: 112px; border-left: 4px solid var(--good); }
+  .tree-node-story.is-unclassified { border-left-color: var(--warn); }
+  .tree-node-task { width: 288px; min-height: 76px; }
+  .node-label { display: block; font-size: 11px; color: var(--ink-faint); font-weight: 700; line-height: 1.3; }
+  .node-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 16px; font-weight: 700; line-height: 1.25; margin: 4px 0 12px; }
+  .tree-node-task .node-name { font-size: 13px; line-height: 1.5; margin-bottom: 0; }
+  .tree-node-task.is-done .node-name { color: var(--ink-dim); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+  .node-status { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--ink-dim); margin-top: 8px; }
+  .node-collapse { font-size: 11px; color: var(--accent); font-weight: 700; }
+  .tree-toolbar { position: sticky; float: right; right: 24px; top: 24px; display: flex; z-index: 4; margin: 24px; padding: 4px; background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-card); }
+  .tree-toolbar button { width: 40px; height: 40px; border: 0; border-radius: 8px; background: transparent; font-weight: 700; }
+  .tree-toolbar button:hover:not(:disabled) { background: var(--surface-sunken); }
+  .tree-toolbar button:focus-visible, .tree-node:focus-visible, .epic-nav-item:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .tree-toolbar button:disabled { color: var(--ink-faint); cursor: not-allowed; opacity: .55; }
+  .viewport-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .roadmap-state { min-height: calc(100vh - 68px); display: grid; place-items: center; padding: 48px 24px; text-align: center; }
+  .roadmap-state-card { max-width: 480px; background: var(--surface); border-radius: 16px; padding: 32px; box-shadow: var(--shadow-card); }
+  .roadmap-state-card h2 { font-size: 20px; margin-bottom: 8px; }
+  .roadmap-state-card p { color: var(--ink-dim); line-height: 1.6; }
+  .state-action { margin-top: 20px; border: 0; background: var(--ink); color: var(--surface); font-size: 13px; font-weight: 700; padding: 12px 16px; border-radius: 8px; }
+  .skeleton { background: linear-gradient(90deg, var(--surface-sunken), var(--surface), var(--surface-sunken)); background-size: 200% 100%; animation: skeleton 1.2s infinite; }
+  @keyframes skeleton { to { background-position: -200% 0; } }
+  .roadmap-skeleton { display: grid; grid-template-columns: 232px 248px 288px; gap: 104px; align-items: center; min-height: 620px; padding: 64px; }
+  .roadmap-skeleton span { display: block; height: 112px; border-radius: 12px; }
+
+  @media (max-width: 640px) {
+    .topbar-row1 { padding: 12px 16px 8px; }
+    .brand-sub { display: none; }
+    .roadmap-shell { display: block; }
+    .epic-nav { border-right: 0; border-bottom: 1px solid var(--line); padding: 12px 16px; overflow-x: auto; }
+    .epic-nav-title { display: none; }
+    .epic-nav-list { flex-direction: row; width: max-content; }
+    .epic-nav-item { min-width: 180px; min-height: 72px; padding: 12px 16px; }
+    .roadmap-head { padding: 12px 16px; align-items: flex-start; }
+    .roadmap-head h2 { font-size: 18px; }
+    .roadmap-mode { font-size: 11px; padding-top: 4px; }
+    .roadmap-canvas { min-height: 600px; }
+    .tree-stage { min-width: 920px; }
+    .tree-toolbar { right: 16px; top: 16px; margin: 16px; }
+    .tree-toolbar button { width: 44px; height: 44px; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) { .tree-stage { transition: transform 160ms ease; } .roadmap-canvas.is-panning .tree-stage { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
 
   #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; z-index: 200; }
   #toast.is-shown { opacity: 1; transform: translateX(-50%) translateY(0); }
   #toast.is-error { background: var(--crit); }
 </style>
+</head>
+<body>
 
 <div class="topbar">
   <div class="topbar-row1">
@@ -186,6 +245,7 @@
       <span class="brand-name">專案管理平台</span>
       <span class="brand-sub">ai/process/kanban.md 的視覺化 — Variant A · 控制塔</span>
     </div>
+    <span class="sync-status" id="sync-status" data-state="connecting" role="status" aria-live="polite">正在連線</span>
     <div class="view-tabs" role="tablist">
       <button type="button" class="is-active" data-view="board" role="tab">看板</button>
       <button type="button" data-view="roadmap" role="tab">藍圖</button>
@@ -198,7 +258,7 @@
     <div class="lanes" id="lanes"></div>
   </section>
   <section id="view-roadmap" class="view">
-    <div class="roadmap" id="roadmap"></div>
+    <div id="roadmap" aria-live="polite"></div>
   </section>
 </main>
 
@@ -207,7 +267,184 @@
 </div>
 <div id="toast"></div>
 
-<script>
+<script type="module">
+/* roadmap-data:start */
+const UNCLASSIFIED_STORY_NAME = "（未分類任務）";
+
+function percentage(done, total) {
+  return total ? Math.round((done / total) * 100) : 0;
+}
+
+function progressFor(tasks) {
+  const list = Array.isArray(tasks) ? tasks : [];
+  const done = list.filter((task) => task && task.stage === "done").length;
+  return { done, total: list.length, percent: percentage(done, list.length) };
+}
+
+function compareTasks(a, b) {
+  const aOrder = Number.isFinite(a && a.order) ? a.order : Number.MAX_SAFE_INTEGER;
+  const bOrder = Number.isFinite(b && b.order) ? b.order : Number.MAX_SAFE_INTEGER;
+  if (aOrder !== bOrder) return aOrder - bOrder;
+  return String((a && a.id) || "").localeCompare(String((b && b.id) || ""));
+}
+
+export function createKanbanUiState() {
+  return {
+    selectedEpicName: null,
+    collapsedBranches: new Set(),
+    viewport: { scale: 1, x: 0, y: 0 },
+    syncState: "connecting"
+  };
+}
+
+export function clampZoom(scale) {
+  return Math.min(1.6, Math.max(0.25, Number.isFinite(scale) ? scale : 1));
+}
+
+export function wheelZoomFactor(deltaY, deltaMode, pageHeight) {
+  const rawDelta = Number.isFinite(deltaY) ? deltaY : 0;
+  const pixelsPerUnit = deltaMode === 1
+    ? 16
+    : deltaMode === 2
+      ? Math.max(1, Number.isFinite(pageHeight) ? pageHeight : 800)
+      : 1;
+  const pixelDelta = Math.max(-120, Math.min(120, rawDelta * pixelsPerUnit));
+  return Math.exp(-pixelDelta * 0.001);
+}
+
+export function fitViewport(contentWidth, contentHeight, viewportWidth, viewportHeight, padding) {
+  const inset = Number.isFinite(padding) ? Math.max(0, padding) : 32;
+  const availableWidth = Math.max(1, viewportWidth - inset * 2);
+  const availableHeight = Math.max(1, viewportHeight - inset * 2);
+  const scale = clampZoom(Math.min(availableWidth / Math.max(1, contentWidth), availableHeight / Math.max(1, contentHeight)));
+  return {
+    scale,
+    x: Math.round((viewportWidth - contentWidth * scale) / 2),
+    y: Math.round((viewportHeight - contentHeight * scale) / 2)
+  };
+}
+
+export function resolveSelectedEpicName(epics, selectedEpicName) {
+  const list = Array.isArray(epics) ? epics : [];
+  if (list.some((epic) => epic && epic.name === selectedEpicName)) return selectedEpicName;
+  return list.length && list[0] ? list[0].name : null;
+}
+
+export function buildEpicProgress(epics, tickets) {
+  const epicList = Array.isArray(epics) ? epics : [];
+  const ticketList = Array.isArray(tickets) ? tickets : [];
+  return epicList.map((epic) => {
+    const tasks = ticketList.filter((task) => task && task.epic === epic.name);
+    return { name: epic.name, definition: epic.definition || "", progress: progressFor(tasks) };
+  });
+}
+
+export function buildSelectedEpicTree(epics, tickets, selectedEpicName) {
+  const epicList = Array.isArray(epics) ? epics : [];
+  const ticketList = Array.isArray(tickets) ? tickets : [];
+  const resolvedName = resolveSelectedEpicName(epicList, selectedEpicName);
+  if (resolvedName === null) return null;
+
+  const epic = epicList.find((item) => item && item.name === resolvedName);
+  const epicTasks = ticketList.filter((task) => task && task.epic === resolvedName);
+  const definitions = Array.isArray(epic.stories) ? epic.stories : [];
+  const storyNames = new Set(definitions.map((story) => story && story.name));
+  const stories = definitions.map((story) => {
+    const tasks = epicTasks.filter((task) => task.userStory === story.name).sort(compareTasks);
+    return {
+      name: story.name,
+      definition: story.definition || "",
+      unclassified: false,
+      progress: progressFor(tasks),
+      tasks
+    };
+  });
+  const unclassified = epicTasks.filter((task) => !storyNames.has(task.userStory)).sort(compareTasks);
+
+  if (unclassified.length) {
+    stories.push({
+      name: UNCLASSIFIED_STORY_NAME,
+      definition: "屬於這個 Epic，但還沒指定 User Story。",
+      unclassified: true,
+      progress: progressFor(unclassified),
+      tasks: unclassified
+    });
+  }
+
+  return {
+    name: epic.name,
+    definition: epic.definition || "",
+    progress: progressFor(epicTasks),
+    stories
+  };
+}
+
+export function buildFocusedTreeLayout(tree, collapsedBranchNames) {
+  if (!tree) return { width: 0, height: 0, nodes: [], edges: [] };
+  const collapsed = collapsedBranchNames instanceof Set ? collapsedBranchNames : new Set();
+  const epicCollapsed = collapsed.has(tree.name + "::*");
+  const nodes = [];
+  const edges = [];
+  const left = { root: 64, story: 400, task: 752 };
+  const sizes = { root: { width: 232, height: 132 }, story: { width: 248, height: 112 }, task: { width: 288, height: 76 } };
+  const visibleStories = epicCollapsed ? [] : tree.stories || [];
+  let cursorY = 64;
+
+  visibleStories.forEach((story, storyIndex) => {
+    const storyKey = tree.name + "::" + story.name;
+    const isCollapsed = collapsed.has(storyKey);
+    const visibleTasks = isCollapsed ? [] : story.tasks;
+    const branchHeight = Math.max(sizes.story.height, visibleTasks.length ? visibleTasks.length * 92 - 16 : sizes.story.height);
+    const storyY = cursorY + Math.max(0, (branchHeight - sizes.story.height) / 2);
+    const storyId = "story-" + storyIndex;
+    nodes.push({ id: storyId, type: "story", x: left.story, y: storyY, width: sizes.story.width, height: sizes.story.height, story, collapsed: isCollapsed });
+
+    visibleTasks.forEach((task, taskIndex) => {
+      const taskY = cursorY + taskIndex * 92;
+      const taskId = "task-" + storyIndex + "-" + taskIndex;
+      nodes.push({ id: taskId, type: "task", x: left.task, y: taskY, width: sizes.task.width, height: sizes.task.height, task });
+      edges.push({ from: storyId, to: taskId });
+    });
+    cursorY += branchHeight + 32;
+  });
+
+  const height = Math.max(620, cursorY + 32);
+  const rootY = Math.max(64, (height - sizes.root.height) / 2);
+  nodes.unshift({ id: "root", type: "root", x: left.root, y: rootY, width: sizes.root.width, height: sizes.root.height, tree, collapsed: epicCollapsed });
+  visibleStories.forEach((story, storyIndex) => edges.unshift({ from: "root", to: "story-" + storyIndex }));
+  return { width: epicCollapsed ? 360 : 1104, height, nodes, edges };
+}
+/* roadmap-data:end */
+
+/* realtime-sync:start */
+export function parseChangeResources(rawData) {
+  try {
+    const data = JSON.parse(rawData);
+    if (!data || !Array.isArray(data.resources)) return [];
+    return Array.from(new Set(data.resources.filter((resource) => resource === "cards" || resource === "epics")));
+  } catch (_) {
+    return [];
+  }
+}
+
+export function mergeChangeResources(current, incoming) {
+  return Array.from(new Set([].concat(current || [], incoming || [])))
+    .filter((resource) => resource === "cards" || resource === "epics");
+}
+
+export function createLatestRequestGate() {
+  const sequences = new Map();
+  return {
+    begin(resource) {
+      const sequence = (sequences.get(resource) || 0) + 1;
+      sequences.set(resource, sequence);
+      return sequence;
+    },
+    isLatest(resource, candidate) { return candidate === sequences.get(resource); }
+  };
+}
+/* realtime-sync:end */
+
 (function () {
   "use strict";
   var COMMENT_AUTHOR = ""; // 開頁時由 /api/config 帶入本機 git user.name
@@ -224,8 +461,23 @@
 
   var TICKETS = [];
   var EPICS = [];
+  var KANBAN_UI_STATE = createKanbanUiState();
+  var roadmapPreviewState = new URLSearchParams(window.location.search).get("roadmapState");
+  var roadmapStatus = "loading";
+  var roadmapError = null;
+  var activeLayout = null;
+  var panGesture = null;
+  var pinchGesture = null;
+  var activePointers = new Map();
   var openId = null;
   var currentView = "board";
+  var modalDirtyFields = new Set();
+  var pendingModalRefresh = false;
+  var pendingChangeResources = [];
+  var changeReloadTimer = null;
+  var latestRequestGate = createLatestRequestGate();
+  var eventSource = null;
+  var hasBeenLive = false;
 
   function stageIndex(id) { for (var i = 0; i < STAGES.length; i++) if (STAGES[i].id === id) return i; return -1; }
   function getTicket(id) { return TICKETS.filter(function (x) { return x.id === id; })[0]; }
@@ -253,6 +505,40 @@
       api("/api/epics").then(function (data) { EPICS = data.epics || []; }),
       api("/api/config").then(function (cfg) { COMMENT_AUTHOR = cfg.owner || "匿名"; })
     ]);
+  }
+  function loadResources(resources) {
+    var requested = mergeChangeResources([], resources);
+    if (!requested.length) return Promise.resolve(false);
+    var requestSequences = {};
+    var nextTickets = null;
+    var nextEpics = null;
+    var requests = [];
+    if (requested.includes("cards")) {
+      requestSequences.cards = latestRequestGate.begin("cards");
+      requests.push(api("/api/cards").then(function (list) { nextTickets = list; }));
+    }
+    if (requested.includes("epics")) {
+      requestSequences.epics = latestRequestGate.begin("epics");
+      requests.push(api("/api/epics").then(function (data) { nextEpics = data.epics || []; }));
+    }
+    return Promise.all(requests).then(function () {
+      var applied = false;
+      if (nextTickets !== null && latestRequestGate.isLatest("cards", requestSequences.cards)) { TICKETS = nextTickets; applied = true; }
+      if (nextEpics !== null && latestRequestGate.isLatest("epics", requestSequences.epics)) { EPICS = nextEpics; applied = true; }
+      if (!applied) return false;
+      roadmapStatus = "ready";
+      renderSynchronizedData();
+      return true;
+    }).catch(function (err) {
+      var isCurrent = requested.some(function (resource) { return latestRequestGate.isLatest(resource, requestSequences[resource]); });
+      if (isCurrent) {
+        roadmapStatus = "error";
+        roadmapError = err;
+        renderRoadmap();
+        showToast("同步失敗：" + err.message, true);
+      }
+      return false;
+    });
   }
   function saveOne(tk) {
     return api("/api/cards/" + encodeURIComponent(tk.id), {
@@ -326,75 +612,174 @@
   }
 
   /* ── render: roadmap ── */
-  function pct(done, total) { return total ? Math.round((done / total) * 100) : 0; }
-
-  function taskRowHtml(tk) {
-    var stage = STAGES[stageIndex(tk.stage)];
-    var done = tk.stage === "done";
-    return (
-      '<button type="button" class="task-row" data-open="' + escapeHtml(tk.id) + '">' +
-      '<span class="task-dot" style="background:' + stage.color + '"></span>' +
-      '<span class="task-id mono">' + tk.id + "</span>" +
-      '<span class="task-title' + (done ? " is-done" : "") + '">' + escapeHtml(tk.title) + "</span>" +
-      (tk.track && tk.track !== "n/a" ? '<span class="pill track-pill">' + trackLabel(tk.track) + "</span>" : "") +
-      '<span class="pill risk-' + tk.risk + '">' + riskLabel(tk.risk) + "</span>" +
-      "</button>"
-    );
+  function edgePath(from, to) {
+    var x1 = from.x + from.width;
+    var y1 = from.y + from.height / 2;
+    var x2 = to.x;
+    var y2 = to.y + to.height / 2;
+    var bend = x1 + (x2 - x1) / 2;
+    return "M" + x1 + " " + y1 + " C" + bend + " " + y1 + " " + bend + " " + y2 + " " + x2 + " " + y2;
   }
 
-  function storyBlockHtml(epicName, story) {
-    var epicDef = EPICS.filter(function (e) { return e.name === epicName; })[0];
-    var knownStoryNames = epicDef ? epicDef.stories.map(function (s) { return s.name; }) : [];
-    var tasks = TICKETS.filter(function (t) {
-      if (t.epic !== epicName) return false;
-      return story.__orphan ? knownStoryNames.indexOf(t.userStory) === -1 : t.userStory === story.name;
-    });
-    var doneCount = tasks.filter(function (t) { return t.stage === "done"; }).length;
-    var body = tasks.length
-      ? '<div class="story-tasks">' + tasks.map(taskRowHtml).join("") + "</div>"
-      : '<p class="no-tasks">尚無任務卡。</p>';
-    return (
-      '<div class="story-block">' +
-      '<div class="story-head"><span class="story-name">' + escapeHtml(story.name) + "</span>" +
-      '<span class="story-frac tabular">' + doneCount + " / " + tasks.length + " 完成 · " + pct(doneCount, tasks.length) + "%</span></div>" +
-      '<p class="story-def">' + escapeHtml(story.definition || "") + "</p>" +
-      '<div class="progress-bar story-progress"><span style="width:' + pct(doneCount, tasks.length) + '%"></span></div>' +
-      body +
-      "</div>"
-    );
-  }
-
-  function epicCardHtml(epic) {
-    var tasks = TICKETS.filter(function (t) { return t.epic === epic.name; });
-    var doneCount = tasks.filter(function (t) { return t.stage === "done"; }).length;
-    var storyNames = (epic.stories || []).map(function (s) { return s.name; });
-    var stories = (epic.stories || []).map(function (s) { return storyBlockHtml(epic.name, s); }).join("");
-    var orphans = tasks.filter(function (t) { return storyNames.indexOf(t.userStory) === -1; });
-    if (orphans.length) {
-      stories += storyBlockHtml(epic.name, { name: "（未分類任務）", definition: "屬於這個 Epic，但還沒指定 User Story。", __orphan: true });
+  function treeNodeHtml(node) {
+    var style = "left:" + node.x + "px;top:" + node.y + "px";
+    if (node.type === "root") {
+      return '<button type="button" class="tree-node tree-node-root" style="' + style + '" data-collapse-epic aria-expanded="' + (!node.collapsed) + '">' +
+        '<span class="node-label">EPIC</span><span class="node-name" title="' + escapeHtml(node.tree.name) + '">' + escapeHtml(node.tree.name) + "</span>" +
+        '<div class="progress-bar"><span style="width:' + node.tree.progress.percent + '%"></span></div>' +
+        '<span class="node-status tabular"><span>' + node.tree.progress.done + " / " + node.tree.progress.total + " 完成 · " + node.tree.progress.percent + '%</span><span class="node-collapse">' + (node.collapsed ? "展開 ＋" : "收合 −") + "</span></span></button>";
     }
-    return (
-      '<div class="epic-card">' +
-      '<div class="epic-head">' +
-      '<div class="epic-title-row"><span class="epic-name">' + escapeHtml(epic.name) + "</span>" +
-      '<span class="epic-frac tabular">' + doneCount + " / " + tasks.length + " 完成 · " + pct(doneCount, tasks.length) + "%</span></div>" +
-      '<p class="epic-def">' + escapeHtml(epic.definition || "") + "</p>" +
-      '<div class="progress-bar"><span style="width:' + pct(doneCount, tasks.length) + '%"></span></div>' +
-      "</div>" +
-      '<div class="epic-body">' + stories + "</div>" +
-      "</div>"
-    );
+    if (node.type === "story") {
+      return '<button type="button" class="tree-node tree-node-story' + (node.story.unclassified ? " is-unclassified" : "") + '" style="' + style + '" data-collapse-story="' + escapeHtml(node.story.name) + '" aria-expanded="' + (!node.collapsed) + '">' +
+        '<span class="node-label">USER STORY' + (node.story.unclassified ? " · 未分類" : "") + '</span><span class="node-name" title="' + escapeHtml(node.story.name) + '">' + escapeHtml(node.story.name) + "</span>" +
+        '<div class="progress-bar"><span style="width:' + node.story.progress.percent + '%"></span></div>' +
+        '<span class="node-status tabular"><span>' + node.story.progress.done + " / " + node.story.progress.total + " 完成</span><span class=\"node-collapse\">" + (node.collapsed ? "展開 ＋" : "收合 −") + "</span></span></button>";
+    }
+    var tk = node.task;
+    var stage = STAGES[stageIndex(tk.stage)] || { label: tk.stage || "未設定" };
+    return '<button type="button" class="tree-node tree-node-task' + (tk.stage === "done" ? " is-done" : "") + '" style="' + style + '" data-open="' + escapeHtml(tk.id) + '">' +
+      '<span class="node-label mono">' + escapeHtml(tk.id) + " · " + escapeHtml(stage.label) + " · " + escapeHtml(riskLabel(tk.risk)) + '</span><span class="node-name" title="' + escapeHtml(tk.title) + '">' + escapeHtml(tk.title) + "</span></button>";
+  }
+
+  function stateHtml(kind) {
+    if (kind === "loading") return '<div class="roadmap-skeleton" aria-label="正在載入藍圖…"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div>';
+    if (kind === "error") return '<div class="roadmap-state"><div class="roadmap-state-card"><h2>無法更新藍圖，請重試</h2><p>' + escapeHtml((roadmapError && roadmapError.message) || "資料暫時無法讀取；現有看板不受影響。") + '</p><button type="button" class="state-action" data-retry-roadmap>重新載入</button></div></div>';
+    return '<div class="roadmap-state"><div class="roadmap-state-card"><h2>尚無藍圖資料</h2><p>先在 <span class="mono">epics.json</span> 建立 Epic 與 User Story，再從看板加入任務。</p></div></div>';
+  }
+
+  function epicNavHtml(summary) {
+    var active = summary.name === KANBAN_UI_STATE.selectedEpicName;
+    return '<button type="button" class="epic-nav-item' + (active ? " is-active" : "") + '" data-select-epic="' + escapeHtml(summary.name) + '" aria-current="' + (active ? "true" : "false") + '"><span class="epic-nav-name">' + escapeHtml(summary.name) + '</span><span class="epic-nav-progress tabular">' + summary.progress.done + " / " + summary.progress.total + " 完成 · " + summary.progress.percent + "%</span></button>";
+  }
+
+  function viewportTransform(viewport) {
+    return "translate(" + viewport.x + "px," + viewport.y + "px) scale(" + viewport.scale + ")";
+  }
+
+  function applyViewport(announce) {
+    var stage = document.querySelector(".tree-stage");
+    if (!stage) return;
+    stage.style.transform = viewportTransform(KANBAN_UI_STATE.viewport);
+    var zoomOut = document.querySelector("[data-zoom-out]");
+    var zoomIn = document.querySelector("[data-zoom-in]");
+    if (zoomOut) zoomOut.disabled = KANBAN_UI_STATE.viewport.scale <= 0.25;
+    if (zoomIn) zoomIn.disabled = KANBAN_UI_STATE.viewport.scale >= 1.6;
+    if (announce) {
+      var status = document.querySelector(".viewport-status");
+      if (status) status.textContent = "畫布縮放 " + Math.round(KANBAN_UI_STATE.viewport.scale * 100) + "%";
+    }
+  }
+
+  function fitRoadmap(announce) {
+    var canvas = document.querySelector(".roadmap-canvas");
+    if (!canvas || !activeLayout) return;
+    KANBAN_UI_STATE.viewport = fitViewport(activeLayout.width, activeLayout.height, canvas.clientWidth, canvas.clientHeight, 32);
+    applyViewport(announce);
+  }
+
+  function zoomRoadmap(nextScale, clientX, clientY, announce) {
+    var canvas = document.querySelector(".roadmap-canvas");
+    if (!canvas) return;
+    var previous = KANBAN_UI_STATE.viewport;
+    var scale = clampZoom(nextScale);
+    if (scale === previous.scale) return;
+    var rect = canvas.getBoundingClientRect();
+    var pointX = Number.isFinite(clientX) ? clientX - rect.left : canvas.clientWidth / 2;
+    var pointY = Number.isFinite(clientY) ? clientY - rect.top : canvas.clientHeight / 2;
+    KANBAN_UI_STATE.viewport = {
+      scale: scale,
+      x: pointX - ((pointX - previous.x) / previous.scale) * scale,
+      y: pointY - ((pointY - previous.y) / previous.scale) * scale
+    };
+    applyViewport(announce);
   }
 
   function renderRoadmap() {
-    document.getElementById("roadmap").innerHTML = EPICS.length
-      ? EPICS.map(epicCardHtml).join("")
-      : '<p class="no-tasks">尚無 Epic。開始新專案時，先跟 Claude／Codex 說明這個專案要做什麼，' +
-        '走一遍 spec-interrogation → implementation-plan 流程，把功能模組（Epic）、用戶需求（User Story）' +
-        '寫進 <span class="mono">tools/kanban/epics.json</span>，任務卡再透過看板分頁的「+ 新增卡片」建立並指定 Epic / User Story。</p>';
+    var forcedState = roadmapPreviewState;
+    if (forcedState === "loading" || (roadmapStatus === "loading" && !forcedState)) {
+      document.getElementById("roadmap").innerHTML = stateHtml("loading");
+      return;
+    }
+    if (forcedState === "error" || (roadmapStatus === "error" && !EPICS.length)) {
+      document.getElementById("roadmap").innerHTML = stateHtml("error");
+      return;
+    }
+    if (forcedState === "empty" || !EPICS.length) {
+      document.getElementById("roadmap").innerHTML = stateHtml("empty");
+      return;
+    }
+    var summaries = buildEpicProgress(EPICS, TICKETS);
+    KANBAN_UI_STATE.selectedEpicName = resolveSelectedEpicName(EPICS, KANBAN_UI_STATE.selectedEpicName);
+    var tree = buildSelectedEpicTree(EPICS, TICKETS, KANBAN_UI_STATE.selectedEpicName);
+    var layout = buildFocusedTreeLayout(tree, KANBAN_UI_STATE.collapsedBranches);
+    activeLayout = layout;
+    var nodeMap = {};
+    layout.nodes.forEach(function (node) { nodeMap[node.id] = node; });
+    var paths = layout.edges.map(function (edge) { return '<path class="tree-edge" d="' + edgePath(nodeMap[edge.from], nodeMap[edge.to]) + '"></path>'; }).join("");
+    var statusError = roadmapStatus === "error";
+    var readOnly = forcedState === "readonly";
+    var statusText = readOnly ? "唯讀檢視" : statusError ? "更新失敗，顯示上次資料" : "資料已載入";
+    document.getElementById("roadmap").innerHTML =
+      '<div class="roadmap-shell"><aside class="epic-nav" aria-label="Epic 總覽"><h1 class="epic-nav-title">Epic 總覽</h1><div class="epic-nav-list">' + summaries.map(epicNavHtml).join("") + "</div></aside>" +
+      '<section class="roadmap-main"><header class="roadmap-head"><div><h2>' + escapeHtml(tree.name) + '</h2><p>' + escapeHtml(tree.definition || "聚焦一個 Epic，展開它的 User Story 與 Task。") + '</p></div><span class="roadmap-mode' + (statusError ? " is-error" : "") + '">' + statusText + "</span></header>" +
+      '<div class="roadmap-canvas" tabindex="0" aria-label="心智圖畫布；可用方向鍵平移，加減鍵縮放，0 回到全景"><div class="tree-toolbar" aria-label="畫布工具"><button type="button" data-zoom-out aria-label="縮小" aria-keyshortcuts="-">−</button><button type="button" data-zoom-in aria-label="放大" aria-keyshortcuts="+">＋</button><button type="button" data-fit-view aria-label="回到全景" aria-keyshortcuts="0">▣</button></div><span class="viewport-status" aria-live="polite"></span>' +
+      '<div class="tree-stage" style="width:' + layout.width + "px;height:" + layout.height + "px;transform:" + viewportTransform(KANBAN_UI_STATE.viewport) + '"><svg class="tree-svg" width="' + layout.width + '" height="' + layout.height + '" aria-hidden="true">' + paths + "</svg>" + layout.nodes.map(treeNodeHtml).join("") + "</div></div></section></div>";
+    applyViewport(false);
   }
 
   function renderAll() { renderLanes(); renderRoadmap(); }
+
+  function isModalDirty() { return modalDirtyFields.size > 0; }
+
+  function renderSynchronizedData() {
+    renderAll();
+    if (!openId) return;
+    if (isModalDirty()) {
+      pendingModalRefresh = true;
+      return;
+    }
+    if (getTicket(openId)) openModal(openId);
+    else closeModal();
+  }
+
+  function setSyncState(state) {
+    var labels = { connecting: "正在連線", live: "即時同步", reconnecting: "重新連線中", error: "同步連線失敗" };
+    KANBAN_UI_STATE.syncState = state;
+    var status = document.getElementById("sync-status");
+    status.dataset.state = state;
+    status.textContent = labels[state] || state;
+  }
+
+  function queueResourceReload(resources, delay) {
+    pendingChangeResources = mergeChangeResources(pendingChangeResources, resources);
+    clearTimeout(changeReloadTimer);
+    changeReloadTimer = setTimeout(function () {
+      var requested = pendingChangeResources;
+      pendingChangeResources = [];
+      loadResources(requested);
+    }, typeof delay === "number" ? delay : 120);
+  }
+
+  function startRealtimeSync() {
+    if (!("EventSource" in window)) {
+      setSyncState("error");
+      return;
+    }
+    setSyncState("connecting");
+    eventSource = new EventSource("/api/events");
+    eventSource.addEventListener("ready", function () {
+      hasBeenLive = true;
+      setSyncState("live");
+      queueResourceReload(["cards", "epics"], 0);
+    });
+    eventSource.addEventListener("change", function (event) {
+      var resources = parseChangeResources(event.data);
+      if (resources.length) queueResourceReload(resources);
+    });
+    eventSource.onerror = function () {
+      setSyncState(hasBeenLive ? "reconnecting" : "error");
+    };
+  }
 
   function switchView(v) {
     currentView = v;
@@ -402,7 +787,9 @@
     document.getElementById("view-" + v).classList.add("is-active");
     document.querySelectorAll(".view-tabs button").forEach(function (b) {
       b.classList.toggle("is-active", b.dataset.view === v);
+      b.setAttribute("aria-selected", b.dataset.view === v ? "true" : "false");
     });
+    if (v === "roadmap") requestAnimationFrame(function () { fitRoadmap(false); });
   }
 
   /* ── modal ── */
@@ -451,17 +838,30 @@
 
     var overlay = document.getElementById("modal-overlay");
     overlay.hidden = false;
+    modalDirtyFields.clear();
+    pendingModalRefresh = false;
     requestAnimationFrame(function () { overlay.classList.add("is-open"); });
   }
 
   function closeModal() {
     var overlay = document.getElementById("modal-overlay");
     overlay.classList.remove("is-open");
+    modalDirtyFields.clear();
+    pendingModalRefresh = false;
     setTimeout(function () { overlay.hidden = true; openId = null; }, 150);
   }
 
-  function persistField(tk) {
-    saveOne(tk).then(function () { renderAll(); });
+  function persistField(tk, fieldId) {
+    saveOne(tk).then(function (saved) {
+      if (saved && saved.id) TICKETS = TICKETS.map(function (item) { return item.id === saved.id ? saved : item; });
+      modalDirtyFields.delete(fieldId);
+      if (pendingModalRefresh) queueResourceReload(["cards"], 0);
+      else renderAll();
+    }).catch(function () {
+      modalDirtyFields.delete(fieldId);
+      pendingModalRefresh = false;
+      loadResources(["cards"]);
+    });
   }
 
   function showToast(msg, isError) {
@@ -551,8 +951,54 @@
   document.addEventListener("click", function (e) {
     if (e.target.closest(".ticket-card")) { openModal(e.target.closest(".ticket-card").dataset.id); return; }
 
-    var taskRow = e.target.closest(".task-row[data-open]");
+    var taskRow = e.target.closest("[data-open]");
     if (taskRow) { openModal(taskRow.dataset.open); return; }
+
+    var epicSelector = e.target.closest("[data-select-epic]");
+    if (epicSelector) {
+      KANBAN_UI_STATE.selectedEpicName = epicSelector.dataset.selectEpic;
+      renderRoadmap();
+      fitRoadmap(false);
+      return;
+    }
+
+    var storyToggle = e.target.closest("[data-collapse-story]");
+    if (storyToggle) {
+      var storyName = storyToggle.dataset.collapseStory;
+      var branchKey = KANBAN_UI_STATE.selectedEpicName + "::" + storyToggle.dataset.collapseStory;
+      if (KANBAN_UI_STATE.collapsedBranches.has(branchKey)) KANBAN_UI_STATE.collapsedBranches.delete(branchKey);
+      else KANBAN_UI_STATE.collapsedBranches.add(branchKey);
+      renderRoadmap();
+      fitRoadmap(false);
+      var restoredStory = Array.from(document.querySelectorAll("[data-collapse-story]")).find(function (node) { return node.dataset.collapseStory === storyName; });
+      if (restoredStory) restoredStory.focus();
+      return;
+    }
+
+    var epicToggle = e.target.closest("[data-collapse-epic]");
+    if (epicToggle) {
+      var epicKey = KANBAN_UI_STATE.selectedEpicName + "::*";
+      if (KANBAN_UI_STATE.collapsedBranches.has(epicKey)) KANBAN_UI_STATE.collapsedBranches.delete(epicKey);
+      else KANBAN_UI_STATE.collapsedBranches.add(epicKey);
+      renderRoadmap();
+      fitRoadmap(false);
+      var restoredEpic = document.querySelector("[data-collapse-epic]");
+      if (restoredEpic) restoredEpic.focus();
+      return;
+    }
+
+    if (e.target.closest("[data-zoom-out]")) { zoomRoadmap(KANBAN_UI_STATE.viewport.scale - 0.1, null, null, true); return; }
+    if (e.target.closest("[data-zoom-in]")) { zoomRoadmap(KANBAN_UI_STATE.viewport.scale + 0.1, null, null, true); return; }
+    if (e.target.closest("[data-fit-view]")) { fitRoadmap(true); return; }
+
+    if (e.target.closest("[data-retry-roadmap]")) {
+      roadmapPreviewState = null;
+      roadmapStatus = "loading";
+      roadmapError = null;
+      renderRoadmap();
+      loadAll().then(function () { roadmapStatus = "ready"; renderAll(); }).catch(function (err) { roadmapStatus = "error"; roadmapError = err; renderRoadmap(); });
+      return;
+    }
 
     var viewTab = e.target.closest(".view-tabs button");
     if (viewTab) { switchView(viewTab.dataset.view); return; }
@@ -613,16 +1059,114 @@
     if (!openId) return;
     var tk = getTicket(openId);
     if (e.target.id === "field-title" && e.target.value.trim() && e.target.value !== tk.title) {
-      tk.title = e.target.value.trim(); persistField(tk);
+      tk.title = e.target.value.trim(); persistField(tk, "field-title");
     } else if (e.target.id === "field-content" && e.target.value !== tk.content) {
-      tk.content = e.target.value; persistField(tk);
+      tk.content = e.target.value; persistField(tk, "field-content");
+    } else {
+      modalDirtyFields.delete(e.target.id);
+      if (pendingModalRefresh && !isModalDirty()) renderSynchronizedData();
     }
   }, true);
 
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !document.getElementById("modal-overlay").hidden) closeModal();
+  document.addEventListener("input", function (e) {
+    if (!openId) return;
+    if (["field-title", "field-content", "new-comment"].includes(e.target.id)) modalDirtyFields.add(e.target.id);
   });
 
-  loadAll().then(renderAll).catch(function (err) { showToast("讀取失敗：" + err.message, true); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !document.getElementById("modal-overlay").hidden) closeModal();
+    var canvas = e.target.closest && e.target.closest(".roadmap-canvas");
+    if (!canvas) return;
+    var nodes = Array.from(canvas.querySelectorAll(".tree-node:is(button)"));
+    var nodeIndex = nodes.indexOf(e.target);
+    if (nodeIndex >= 0 && ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) {
+      e.preventDefault();
+      var delta = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+      nodes[(nodeIndex + delta + nodes.length) % nodes.length].focus();
+      return;
+    }
+    if (["+", "="].includes(e.key)) { e.preventDefault(); zoomRoadmap(KANBAN_UI_STATE.viewport.scale + 0.1, null, null, true); }
+    else if (e.key === "-") { e.preventDefault(); zoomRoadmap(KANBAN_UI_STATE.viewport.scale - 0.1, null, null, true); }
+    else if (e.key === "0") { e.preventDefault(); fitRoadmap(true); }
+    else if (["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) {
+      e.preventDefault();
+      var amount = e.shiftKey ? 80 : 32;
+      KANBAN_UI_STATE.viewport.x += e.key === "ArrowRight" ? -amount : e.key === "ArrowLeft" ? amount : 0;
+      KANBAN_UI_STATE.viewport.y += e.key === "ArrowDown" ? -amount : e.key === "ArrowUp" ? amount : 0;
+      applyViewport(false);
+    }
+  });
+
+  document.addEventListener("wheel", function (e) {
+    var canvas = e.target.closest && e.target.closest(".roadmap-canvas");
+    if (!canvas) return;
+    e.preventDefault();
+    var factor = wheelZoomFactor(e.deltaY, e.deltaMode, canvas.clientHeight);
+    zoomRoadmap(KANBAN_UI_STATE.viewport.scale * factor, e.clientX, e.clientY, false);
+  }, { passive: false });
+
+  document.addEventListener("pointerdown", function (e) {
+    var canvas = e.target.closest && e.target.closest(".roadmap-canvas");
+    if (!canvas || e.target.closest("button")) return;
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (activePointers.size === 1) {
+      panGesture = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, x: KANBAN_UI_STATE.viewport.x, y: KANBAN_UI_STATE.viewport.y };
+    } else if (activePointers.size === 2) {
+      var points = Array.from(activePointers.values());
+      pinchGesture = { distance: Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y) };
+      panGesture = null;
+    }
+    canvas.classList.add("is-panning");
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  document.addEventListener("pointermove", function (e) {
+    if (!activePointers.has(e.pointerId)) return;
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinchGesture && activePointers.size >= 2) {
+      var points = Array.from(activePointers.values()).slice(0, 2);
+      var distance = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+      var centerX = (points[0].x + points[1].x) / 2;
+      var centerY = (points[0].y + points[1].y) / 2;
+      if (pinchGesture.distance > 0) zoomRoadmap(KANBAN_UI_STATE.viewport.scale * distance / pinchGesture.distance, centerX, centerY, false);
+      pinchGesture.distance = distance;
+      return;
+    }
+    if (!panGesture || panGesture.pointerId !== e.pointerId) return;
+    KANBAN_UI_STATE.viewport.x = panGesture.x + e.clientX - panGesture.startX;
+    KANBAN_UI_STATE.viewport.y = panGesture.y + e.clientY - panGesture.startY;
+    applyViewport(false);
+  });
+
+  function endPan(e) {
+    if (!activePointers.has(e.pointerId)) return;
+    activePointers.delete(e.pointerId);
+    pinchGesture = null;
+    if (activePointers.size === 1) {
+      var remaining = Array.from(activePointers.entries())[0];
+      panGesture = { pointerId: remaining[0], startX: remaining[1].x, startY: remaining[1].y, x: KANBAN_UI_STATE.viewport.x, y: KANBAN_UI_STATE.viewport.y };
+      return;
+    }
+    var canvas = document.querySelector(".roadmap-canvas");
+    if (canvas) canvas.classList.remove("is-panning");
+    panGesture = null;
+  }
+  document.addEventListener("pointerup", endPan);
+  document.addEventListener("pointercancel", endPan);
+
+  renderRoadmap();
+  loadAll().then(function () {
+    roadmapStatus = "ready";
+    renderAll();
+    startRealtimeSync();
+  }).catch(function (err) {
+    roadmapStatus = "error";
+    roadmapError = err;
+    renderRoadmap();
+    showToast("讀取失敗：" + err.message, true);
+    startRealtimeSync();
+  });
 })();
 </script>
+</body>
+</html>

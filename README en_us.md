@@ -1,6 +1,6 @@
 # Monstrare
 
-**English** | [繁體中文](README.zh-TW.md)
+**English** | [繁體中文](README.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -17,6 +17,29 @@ that visualizes every task's progress through the gates below.
 
 ![Kanban board](tools/kanban/docs/board-screenshot.png)
 ![Roadmap view](tools/kanban/docs/roadmap-screenshot.png)
+
+## What This Fork Changes
+
+Starting from Monstrare `a187710`, this repository adds a set of working system
+improvements:
+
+- Replaces the vertical roadmap list with an Epic navigator and a focused tree
+  that supports zoom, pan, fit-to-view, and branch collapse.
+- Adds keyboard and touch interaction, ARIA support, a responsive layout, and
+  loading, empty, error, and read-only states.
+- Adds local SSE synchronization so open tabs refresh after API writes, direct
+  JSON edits, or git-style file replacement.
+- Protects against reconnect failures, stale GET responses, and external updates
+  overwriting unsaved modal input.
+- Makes agent governance proportional to task size and risk instead of forcing
+  every small change through the full specification workflow.
+- Adds 17 automated tests, retained UI evidence, and stable `npm test` and
+  `npm run check` entry points.
+
+See [`CUSTOMIZATIONS.md`](CUSTOMIZATIONS.md) for the complete change inventory,
+affected files, verification steps, and known limitations. The completed tasks
+have been removed from the active board; their specifications and evidence remain
+under `ai/artifacts/看板體驗改善/` as historical records.
 
 ## The Problem
 
@@ -73,14 +96,19 @@ dependency on skills installed in someone's home directory.
 
 From `AGENTS.md`, read before any agent touches this repository:
 
-- No non-trivial change from a vague request.
-- Start from context discovery, not assumptions.
-- `definition-of-ready.md` before implementation, `definition-of-done.md` before calling anything done.
-- UI changes need `screen-spec.md` + `mockup-decision.md`, reuse the design system in `ai/context/design-system.md`, and follow the `design-craft` visual discipline.
-- High-risk changes need architecture + security + test review.
-- Reuse existing patterns over new abstractions.
-- Stay inside the approved task card's scope; no unrelated file changes without saying so.
-- No completion claim without evidence: commands, output, screenshots, residual risk.
+- Small, explicit changes may be handled directly; ambiguous, cross-system, or
+  non-trivial work uses the full governance workflow.
+- Start with the smallest useful context search and reuse existing architecture,
+  style, tokens, and components.
+- Create tasks only when the board already tracks the work or the user requests it.
+- New screens and major interaction flows need specs and mockups; small UI fixes
+  may be implemented directly with proportionate verification.
+- High-risk changes require security, backup, and rollback planning before any
+  irreversible action.
+- Preserve the user's existing work, avoid unrelated edits, and do not add
+  production dependencies without explicit approval.
+- Deliver tests, lint, builds, screenshots, or residual-risk notes in proportion
+  to the change.
 
 Agent output is never itself an approval — humans sign off at every gate in
 `ai/process/review-gates.md`.
@@ -119,6 +147,7 @@ ai/skills/                    # Canonical skill content shared by .claude/skills
 ai/artifacts/                 # Completed specs, mockups, task cards, verification reports (one folder per Epic)
 ai/examples/                  # Example task and feature artifacts
 tools/kanban/                 # Local Kanban board implementing ai/process/kanban.md
+CUSTOMIZATIONS.md             # Complete inventory of this fork's custom changes
 ```
 
 ## Quick Start
@@ -127,12 +156,12 @@ tools/kanban/                 # Local Kanban board implementing ai/process/kanba
 `AGENTS.md`, `CLAUDE.md`, and the whole `ai/` toolkit are already at the root.
 
 ```bash
-git clone https://github.com/pjwang2022/Monstrare.git my-project
+git clone https://github.com/ttrrdfx/Monstrare.git my-project
 cd my-project
 rm -rf .git && git init   # start your own history
 ```
 
-Then make it yours: replace `README.md`/`README.zh-TW.md` with your own
+Then make it yours: replace `README.md`/`README en_us.md` with your own
 project's readme, rename `package.json`'s `name`, and optionally delete
 `scripts/install-into-project.sh` and the board-design history under
 `tools/kanban/` (`mockups/`, `mockup-decision.md`, `screen-spec.md`) — those
@@ -207,10 +236,22 @@ npm run kanban   # open http://127.0.0.1:4420
 - **Add a card** — click "+ 新增卡片" at the bottom of any lane; the server assigns the ID.
 - **Move a card** — drag it into another lane to change its stage, or reorder it within a lane.
 - **Edit details** — click a card to open its panel: owner, risk, agent, Readiness checklist, Review Gates, comments.
-- **Track by Epic/User Story** — switch to the "藍圖" (Roadmap) tab.
+- **Track by Epic/User Story** — switch to the "藍圖" (Roadmap) tab and use
+  the focused tree to zoom, pan, and collapse branches.
+- **Stay synchronized** — tabs connected to the same local server refresh after
+  API or JSON-file changes without overwriting unsaved modal input.
 
 ![Roadmap view](tools/kanban/docs/roadmap-screenshot.png)
 
 Every action writes straight back to `cards/*.json` — no save button, no
 database; `git commit`/`git push` is how state is persisted and shared. Full
 schema and API reference: [`tools/kanban/README.md`](tools/kanban/README.md).
+
+## Verification
+
+Node.js 20 or later is required. There are no production dependencies.
+
+```bash
+npm test        # run 17 roadmap, interaction, and SSE tests
+npm run check   # tests + server syntax + governance-file integrity
+```

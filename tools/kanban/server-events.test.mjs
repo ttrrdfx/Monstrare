@@ -9,7 +9,7 @@ import test from 'node:test';
 
 const SERVER_FILE = new URL('./server.mjs', import.meta.url);
 
-async function startServer(t) {
+async function startServer(t, { port = '0' } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'monstrare-events-'));
   await fs.mkdir(path.join(root, 'cards'));
   await fs.writeFile(path.join(root, 'index.html'), '<!doctype html><title>test</title>');
@@ -19,7 +19,7 @@ async function startServer(t) {
     env: {
       ...process.env,
       KANBAN_ROOT: root,
-      KANBAN_PORT: '0',
+      KANBAN_PORT: String(port),
       KANBAN_EVENT_DEBOUNCE_MS: '25',
       KANBAN_HEARTBEAT_MS: '40'
     },
@@ -53,7 +53,7 @@ async function startServer(t) {
     }
     await fs.rm(root, { recursive: true, force: true });
   });
-  return { root, child, baseUrl, getStderr: () => stderr };
+  return { root, child, baseUrl, getStderr: () => stderr, getStdout: () => stdout };
 }
 
 function connectEvents(baseUrl) {
@@ -223,4 +223,21 @@ test('closing the server ends SSE clients and releases the process', async (t) =
   ]);
   assert.equal(code, 0);
   assert.equal(signal, null);
+});
+
+test('tries the next port when the configured port is occupied', async (t) => {
+  const blocker = http.createServer();
+  blocker.listen(0, '127.0.0.1');
+  await once(blocker, 'listening');
+  t.after(() => blocker.close());
+
+  const address = blocker.address();
+  assert.equal(typeof address, 'object');
+  const occupiedPort = address.port;
+  const { baseUrl, getStderr } = await startServer(t, { port: occupiedPort });
+  const listeningPort = Number(new URL(baseUrl).port);
+
+  assert.ok(listeningPort > occupiedPort);
+  assert.match(getStderr(), new RegExp(`port ${occupiedPort} 已被占用，改用 ${occupiedPort + 1}`));
+  assert.deepEqual(await api(baseUrl, '/api/cards', 'GET'), []);
 });

@@ -1,0 +1,61 @@
+{
+  "id": "TASK-007",
+  "title": "看板啟動時自動避開已占用的 port",
+  "content": "讓 npm run kanban 從 4420（或 KANBAN_PORT 指定的起始 port）啟動；遇到 EADDRINUSE 時依序嘗試下一個 port，直到成功或超出有效範圍。同步更新使用說明並加入整合測試。",
+  "stage": "done",
+  "risk": "low",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": false,
+  "createdAt": "2026-09-15",
+  "epic": "看板維護",
+  "userStory": "本機啟動可靠性",
+  "track": "backend",
+  "dependsOn": [],
+  "order": 2,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": false,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "",
+    "screenSpec": "",
+    "mockupDecision": "",
+    "taskCard": "",
+    "verificationReport": "ai/artifacts/看板維護/verification/TASK-007.md",
+    "pr": ""
+  },
+  "refs": [
+    "tools/kanban/server.mjs",
+    "tools/kanban/server-events.test.mjs",
+    "tools/kanban/README.md",
+    "ai/context/project-map.md"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test tools/kanban/server-events.test.mjs",
+      "npm run check",
+      "git diff --check"
+    ],
+    "findings": [
+      "占用起始 port 後，看板會往下一個可用 port 啟動且 API 正常回應。",
+      "完整測試 18/18 通過，server 語法與治理檔案檢查通過。",
+      "git diff --check 通過。"
+    ],
+    "residual": "只監聽 127.0.0.1；若一路嘗試到 65535 仍無可用 port，server 會以錯誤結束。"
+  },
+  "comments": []
+}

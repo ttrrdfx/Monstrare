@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "kanban": "node tools/kanban/server.mjs",
-    "test": "node --test tools/kanban/*.test.mjs",
-    "check": "npm test && node --check tools/kanban/server.mjs && bash scripts/check-governance.sh"
+    "test": "node --test tools/kanban/*.test.mjs test/monstrare/*.test.mjs",
+    "check": "npm test && bash scripts/check-syntax.sh && bash scripts/check-governance.sh"
   }
 }

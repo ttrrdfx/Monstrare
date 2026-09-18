@@ -1,0 +1,48 @@
+{
+  "id": "TASK-901",
+  "title": "Preserved fixture card",
+  "content": "Downstream-owned data",
+  "stage": "backlog",
+  "risk": "low",
+  "owner": "fixture",
+  "agent": "",
+  "approvalRequired": false,
+  "createdAt": "2026-09-18",
+  "epic": "Fixture Epic",
+  "userStory": "Preserve data",
+  "track": "n/a",
+  "dependsOn": [],
+  "order": 1,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": false,
+    "ui": false,
+    "architecture": false,
+    "security": false,
+    "test": false,
+    "code_review": false
+  },
+  "links": {
+    "featureSpec": "",
+    "screenSpec": "",
+    "mockupDecision": "",
+    "taskCard": "",
+    "verificationReport": "",
+    "pr": ""
+  },
+  "refs": [],
+  "evidence": {
+    "commands": [],
+    "findings": [],
+    "residual": ""
+  },
+  "comments": []
+}

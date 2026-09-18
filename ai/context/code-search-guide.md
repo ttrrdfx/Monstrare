@@ -12,6 +12,7 @@
 | 前端即時同步 | `tools/kanban/index.html` | `startRealtimeSync`, `loadResources`, `modalDirtyFields` |
 | HTTP／SSE server | `tools/kanban/server.mjs` | `/api/events`, `handleEvents`, `queueChange` |
 | Card 驗證 | `tools/kanban/server.mjs` | `validateCard`, `checkDependsOn`, `fillDefaults` |
+| 跨版本 migration | `scripts/lib/migrations.mjs`, `scripts/migrations/index.mjs` | `buildMigrationChain`, `prepareMigrations`, `executeMigrations` |
 | 測試 | `tools/kanban/*.test.mjs` | `node:test`, `KANBAN_ROOT`, `KANBAN_PORT` |
 | 工作規則 | `AGENTS.md`, `ai/process/` | `小型且明確`, `review gate`, `definition-of-ready` |
 | 客製變更 | `CUSTOMIZATIONS.md` | `a187710`, `即時同步`, `聚焦樹` |
@@ -27,6 +28,12 @@
 | `handleEvents` | 建立 SSE response | `tools/kanban/server.mjs` |
 | `queueChange` | 合併 cards/epics invalidation | `tools/kanban/server.mjs` |
 | `startRealtime` | 啟動 watcher 與 heartbeat | `tools/kanban/server.mjs` |
+| `planProjectUpgrade` | 唯讀載入 manifest／legacy baseline 並建立升級計畫 | `scripts/lib/plan.mjs` |
+| `buildUpgradePlan` | 純函式分類 add/update/remove/preserve/conflict | `scripts/lib/plan.mjs` |
+| `applyProjectUpgrade` | 以 lock、backup、staging、journal 與 rollback 套用升級計畫 | `scripts/lib/transaction.mjs` |
+| `buildMigrationChain` | 驗證並排序無缺口、無分支的跨版本 migration 鏈 | `scripts/lib/migrations.mjs` |
+| `executeMigrations` | 以受限 context、完整 scope backup 與 journal 套用 migration | `scripts/lib/migrations.mjs` |
+| `verifyProject` | 執行目標專案 governance、看板測試與 Node/shell 語法檢查並彙整結果 | `scripts/lib/verify.mjs` |
 
 ## 給 Agent 的備註
 

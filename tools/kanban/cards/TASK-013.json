@@ -1,0 +1,58 @@
+{
+  "id": "TASK-013",
+  "title": "完成升級 E2E、文件與發布驗證",
+  "content": "以可重現 fixture 證明新安裝、legacy 探測、dry-run、衝突保護、升級、回復與 migration 契約，並完成雙語文件。",
+  "stage": "backlog",
+  "risk": "medium",
+  "owner": "ttrrdfx",
+  "agent": "",
+  "approvalRequired": true,
+  "createdAt": "2026-09-15",
+  "epic": "Monstrare 版本升級機制",
+  "userStory": "驗證升級",
+  "track": "n/a",
+  "dependsOn": [
+    "TASK-009",
+    "TASK-010",
+    "TASK-011",
+    "TASK-012"
+  ],
+  "order": 4,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": false,
+    "test": false,
+    "code_review": false
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/Monstrare 版本升級機制/feature-spec.md",
+    "screenSpec": "",
+    "mockupDecision": "",
+    "taskCard": "ai/artifacts/Monstrare 版本升級機制/task-cards/TASK-013.md",
+    "verificationReport": "",
+    "pr": ""
+  },
+  "refs": [
+    "test/monstrare/",
+    "README.md",
+    "README en_us.md",
+    "package.json"
+  ],
+  "evidence": {
+    "commands": [],
+    "findings": [],
+    "residual": ""
+  },
+  "comments": []
+}

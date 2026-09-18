@@ -14,6 +14,7 @@ const configuredPort = Number(process.env.KANBAN_PORT ?? 4420);
 const PORT = Number.isInteger(configuredPort) && configuredPort >= 0 && configuredPort <= 65535
   ? configuredPort
   : 4420;
+let pendingPort = PORT;
 
 const MODULE_ROOT = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
 const ROOT = process.env.KANBAN_ROOT ? path.resolve(process.env.KANBAN_ROOT) : MODULE_ROOT;
@@ -508,19 +509,23 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.on('error', (err) => {
-  shutdownRealtime();
-  if (err.code === 'EADDRINUSE') {
-    console.error(`[kanban] port ${PORT} 已被占用。請先關掉占用的程序（lsof -i :${PORT}）再重新啟動。`);
-  } else {
-    console.error('[kanban] server 啟動失敗：' + err.message);
+  if (err.code === 'EADDRINUSE' && pendingPort < 65535) {
+    const occupiedPort = pendingPort;
+    pendingPort += 1;
+    console.warn(`[kanban] port ${occupiedPort} 已被占用，改用 ${pendingPort}。`);
+    server.listen(pendingPort, HOST);
+    return;
   }
+
+  shutdownRealtime();
+  console.error('[kanban] server 啟動失敗：' + err.message);
   process.exit(1);
 });
 
-server.listen(PORT, HOST, () => {
+server.listen(pendingPort, HOST, () => {
   startRealtime();
   const address = server.address();
-  const listeningPort = typeof address === 'object' && address ? address.port : PORT;
+  const listeningPort = typeof address === 'object' && address ? address.port : pendingPort;
   console.log(`[kanban] 治理看板 → http://${HOST}:${listeningPort}`);
   console.log(`[kanban] 資料目錄：${CARDS_DIR}`);
 });

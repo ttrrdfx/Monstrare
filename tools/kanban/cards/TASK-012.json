@@ -1,0 +1,66 @@
+{
+  "id": "TASK-012",
+  "title": "建立受限的跨版本 migration 框架",
+  "content": "建立可排序、可檢查、限制檔案範圍且納入同一備份與回復交易的 migration registry。",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-15",
+  "epic": "Monstrare 版本升級機制",
+  "userStory": "安全升級",
+  "track": "n/a",
+  "dependsOn": [
+    "TASK-011"
+  ],
+  "order": 3,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/Monstrare 版本升級機制/feature-spec.md",
+    "screenSpec": "",
+    "mockupDecision": "",
+    "taskCard": "ai/artifacts/Monstrare 版本升級機制/task-cards/TASK-012.md",
+    "verificationReport": "ai/artifacts/Monstrare 版本升級機制/verification/TASK-012.md",
+    "pr": ""
+  },
+  "refs": [
+    "scripts/migrations/",
+    "scripts/lib/migrations.mjs",
+    "scripts/lib/transaction.mjs",
+    "test/monstrare/migrations.test.mjs",
+    "tools/kanban/README.md",
+    "ai/artifacts/Monstrare 版本升級機制/architecture-plan.md"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test test/monstrare/migrations.test.mjs test/monstrare/transaction.test.mjs",
+      "npm run check",
+      "for f in scripts/lib/migrations.mjs scripts/lib/transaction.mjs scripts/migrations/index.mjs test/monstrare/migrations.test.mjs; do node --check \"$f\"; done",
+      "git diff --check"
+    ],
+    "findings": [
+      "針對性測試 23/23 通過，涵蓋 registry、連續版本鏈、check 狀態、scope、symlink、完整備份、失敗 rollback 與看板 E2E。",
+      "完整檢查 71/71 通過，governance kit check passed。",
+      "安全審查確認缺少 migration 鏈會在寫入前失敗，migration 進度納入同一 journal，scope 內未追蹤寫入與 managed 偏移均會拒絕並回復。"
+    ],
+    "residual": "Production migration 是受信任 source code；Node.js 無法沙箱惡意 module 對宣告 scope 外直接使用 fs，新增 migration 仍需 code review。lstat 到 rename 間仍有同使用者 TOCTOU 小視窗；SIGKILL 或斷電需依 backup/journal 人工復原。空 registry 代表沒有 schema 差異，未來 schema 變更須同步登錄完整 migration 鏈。"
+  },
+  "comments": []
+}

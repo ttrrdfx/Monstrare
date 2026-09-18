@@ -4,6 +4,8 @@ set -euo pipefail
 required_files=(
   "AGENTS.md"
   "CLAUDE.md"
+  "VERSION"
+  "monstrare-package.json"
   "ai/process/workflow.md"
   "ai/process/context-protocol.md"
   "ai/process/definition-of-ready.md"
@@ -27,6 +29,15 @@ required_files=(
   "ai/skills/implementation-plan.md"
   "ai/skills/security-maintainability-review.md"
   "ai/skills/test-verification.md"
+  "scripts/monstrare.mjs"
+  "scripts/check-syntax.sh"
+  "scripts/lib/manifest.mjs"
+  "scripts/lib/plan.mjs"
+  "scripts/lib/paths.mjs"
+  "scripts/lib/migrations.mjs"
+  "scripts/lib/verify.mjs"
+  "scripts/migrations/index.mjs"
+  "scripts/manifests/legacy-7749c12.json"
 )
 
 missing=0
@@ -70,5 +81,14 @@ if [[ "$missing" -ne 0 ]]; then
   exit 1
 fi
 
-echo "governance kit check passed"
+node --input-type=module -e '
+  import { readFile } from "node:fs/promises";
+  import { readSourceManifest } from "./scripts/lib/manifest.mjs";
+  const version = (await readFile("VERSION", "utf8")).trim();
+  const manifest = await readSourceManifest("monstrare-package.json");
+  if (manifest.version !== version) {
+    throw new Error(`VERSION (${version}) does not match monstrare-package.json (${manifest.version})`);
+  }
+'
 
+echo "governance kit check passed"

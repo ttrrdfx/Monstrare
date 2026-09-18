@@ -1,0 +1,64 @@
+{
+  "id": "TASK-010",
+  "title": "實作 status、dry-run 與 legacy 版本探測",
+  "content": "在不修改 target 的前提下產生版本狀態與升級計畫，並保守辨識沒有 manifest 的已知舊版安裝。",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-15",
+  "epic": "Monstrare 版本升級機制",
+  "userStory": "預覽升級",
+  "track": "n/a",
+  "dependsOn": [
+    "TASK-008"
+  ],
+  "order": 1,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": false,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/Monstrare 版本升級機制/feature-spec.md",
+    "screenSpec": "",
+    "mockupDecision": "",
+    "taskCard": "ai/artifacts/Monstrare 版本升級機制/task-cards/TASK-010.md",
+    "verificationReport": "ai/artifacts/Monstrare 版本升級機制/verification/TASK-010.md",
+    "pr": ""
+  },
+  "refs": [
+    "scripts/install-into-project.sh",
+    "scripts/manifests/",
+    "ai/artifacts/Monstrare 版本升級機制/architecture-plan.md"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test test/monstrare/plan.test.mjs test/monstrare/cli.test.mjs",
+      "node --check scripts/lib/plan.mjs",
+      "node --check scripts/monstrare.mjs",
+      "git diff --check",
+      "npm run check"
+    ],
+    "findings": [
+      "針對性測試 11/11 通過，涵蓋五種分類、legacy 探測、唯讀快照與 human/JSON 契約。",
+      "完整檢查 47/47 通過，governance kit check passed。",
+      "status 與 upgrade --dry-run 僅輸出路徑、分類與原因，不輸出目標檔案內容或 hash。"
+    ],
+    "residual": "legacy 探測目前只內建 7749c12 baseline；未辨識版本會保守拒絕。計畫產生到 TASK-011 寫入間的 TOCTOU 風險需在套用前重新驗證。"
+  },
+  "comments": []
+}

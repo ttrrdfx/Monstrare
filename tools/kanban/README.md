@@ -33,7 +33,7 @@ node tools/kanban/server.mjs
 npm run kanban
 ```
 
-瀏覽器開 <http://127.0.0.1:4420>（server 只 bind 127.0.0.1，port 4420 被占用時會直接報錯，不自動換 port；若啟動失敗，先用 `lsof -i :4420` 找出佔用的程序）。
+瀏覽器開終端機顯示的網址（server 只 bind `127.0.0.1`，預設從 port 4420 開始；若 port 已被占用，會依序嘗試下一個 port）。
 
 ## 怎麼操作
 

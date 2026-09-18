@@ -2,191 +2,261 @@
 
 [English](README%20en_us.md) | **繁體中文**
 
+[![Version](https://img.shields.io/badge/version-1.0.0-6d5dfc.svg)](VERSION)
+[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A520-339933.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**一個可直接複製使用的工作流程層，讓 AI coding agent 不會根據模糊需求就動手做出非小型變更。**
+**一套可直接放進 repository 的 AI coding governance kit：先把需求說清楚、留下可審查的證據，再讓非小型變更進入 production。**
 
-把這個資料夾複製進任何專案，Claude Code、Codex 等 agentic 工具就會遵循同一套關卡流程——規格、規劃、任務卡、實作、驗證、審查——才讓程式碼進到 production。
+Monstrare 把 Agent 工作規則、規格與任務範本、品質關卡，以及一個本機 Kanban 看板一起放進專案。Claude Code、Codex 或其他 agentic 工具只要讀取 repository 內的入口檔，就能沿用同一套協作方式，不依賴某台電腦上的隱藏設定。
 
-## Demo
+目前版本為 **v1.0.0**，需要 **Node.js 20 以上**，沒有 production dependency。
 
-套件內建一個零依賴的本地看板（`tools/kanban/`，`npm run kanban`），把每個任務走過下面各關卡的進度視覺化。
+## 它解決什麼問題
 
-![看板畫面](tools/kanban/docs/board-screenshot.png)
-![藍圖畫面](tools/kanban/docs/roadmap-screenshot.png)
+- Agent 從模糊 prompt 直接開始寫，最後產生難以審查的大型 diff。
+- 「看起來可以」就被當成完成，缺少測試、截圖、build 或殘留風險紀錄。
+- 架構、安全性與資料邊界等問題，直到程式碼完成後才被發現。
+- 團隊沒有共同的規格、任務就緒條件、驗收標準與人工核准位置。
+- Monstrare 本身升級時，容易誤蓋下游專案的看板資料或客製內容。
 
-## 此版本做了哪些客製變更
+## v1.0.0 包含什麼
 
-這個 repository 以原版 Monstrare `a187710` 為基準，完成了一批實際的系統改善：
+- **依規模治理**：小型、明確的工作可直接處理；需求模糊、跨元件或高風險工作才啟動完整關卡。
+- **Repository-native 工作流程**：規格、task card、驗證報告與 review gate 全都能被 git 追蹤。
+- **本機 AI 看板**：六條車道、Epic／User Story 聚焦樹、WIP 提示、詳情編輯與 JSON API。
+- **即時同步**：同一本機 server 下，API 寫入、JSON 編輯與 git 替換會透過 SSE 通知已開啟頁籤更新。
+- **版本化安裝與升級**：manifest、checksum、dry-run、衝突保護、備份、交易式回復與 migration 框架。
+- **可重現驗證**：固定的 `npm test`、`npm run check` 與 `node scripts/monstrare.mjs verify` 入口。
 
-- 將藍圖從直向清單升級為「Epic 導覽 + 可縮放、平移、收合的聚焦樹」。
-- 加入鍵盤與觸控操作、ARIA、行動版版面，以及 loading／empty／error／唯讀狀態。
-- 新增本機 SSE 即時同步；API、直接 JSON 編輯或 git 替換後，已開啟頁籤會自動更新。
-- 加入斷線重連、請求競態保護與詳情視窗未儲存輸入保護。
-- 將 Agent 規則改為依工作規模與風險分級，不再強迫小修正走完整規格流程。
-- 新增 17 項自動測試、UI 驗證紀錄與可直接執行的 `npm test`／`npm run check`。
+此 repository 以原版 Monstrare `a187710` 為基準。看板客製歷史見 [`CUSTOMIZATIONS.md`](CUSTOMIZATIONS.md)；v1.0.0 升級器的規格與驗證證據見 [`ai/artifacts/Monstrare 版本升級機制/verification/TASK-013.md`](ai/artifacts/Monstrare%20版本升級機制/verification/TASK-013.md)。
 
-完整的逐項差異、檔案位置、驗證方式與限制請見
-[`CUSTOMIZATIONS.md`](CUSTOMIZATIONS.md)。這批工作的作用中 task 已清空，規格與驗證
-則保留在 `ai/artifacts/看板體驗改善/` 作為歷史紀錄。
+## 工作流程
 
-## 解決什麼問題
+非小型變更依 `ai/process/workflow.md` 經過下列階段；實際需要哪些關卡由工作規模與風險決定，不是每個 typo 都要走完整流程。
 
-- Agent 根據模糊的 prompt 就開始寫，產出又大又難審查的 diff。
-- 「看起來是對的」就直接上線，沒有測試、截圖或任何證據。
-- 架構與安全性審查發生在程式碼寫完之後，甚至根本沒發生。
-- 每個專案都在自己土法煉鋼一套跟 agent 協作的流程。
-
-## 架構：流程怎麼運作
-
-每個非小型（non-trivial）變更都會依序走過以下階段，完整定義見 `ai/process/workflow.md`：
-
-| 階段 | 輸出 | 關卡 |
+| 階段 | 主要輸出 | 人工關卡 |
 | --- | --- | --- |
-| 0. 收件（Intake） | 問題陳述、目標、限制、未知事項 | 需求模糊 → 進入釐清 |
-| 1. 情境探索 | 任務專屬情境包：相關檔案、既有模式、風險、驗證指令 | — |
-| 2. 釐清（Clarification） | `feature-spec.md`、非目標、驗收標準 | 人工核准 |
-| 3. UI Mockup（涉及 UI 時） | 畫面／狀態地圖、2-3 個變體、取捨比較 | 人工選定變體 |
-| 4. 架構規劃 | 變更檔案、資料／API 契約、回滾計畫 | 高風險 → architect + security + test 審查 |
-| 5. 任務卡 | 符合 `definition-of-ready.md` 的 AI-ready 卡片 | — |
-| 6. 實作 | 一次一張已核准的卡、diff 要小 | 範圍變動 → 停下來問 |
-| 7. 驗證 | 測試、型別檢查、lint、build、安全性掃描、截圖 | — |
-| 8. 審查 | 產品／UX／架構／安全性／測試／code review | `review-gates.md` |
-| 9. 人工驗收 | 變更了什麼、證據、殘留風險、後續任務 | 沒證據 → 不算完成 |
+| 收件 | 問題、目標、限制、未知事項 | 需求模糊時先釐清 |
+| 情境探索 | 相關檔案、既有模式、風險與驗證指令 | — |
+| 規格 | `feature-spec.md`、非目標、驗收標準 | 核准需求 |
+| UI 選型 | screen spec、2–3 個 mockup 變體與取捨 | 選定方向 |
+| 架構與任務 | 變更邊界、契約、回滾計畫、AI-ready task card | 高風險審查 |
+| 實作 | 範圍受限的小型 diff | 範圍改變時停下確認 |
+| 驗證與審查 | 測試、lint、build、安全檢查、截圖與 review | 人工驗收 |
 
-全新專案、還沒有 Epic/User Story 待辦清單？先跑 `project-kickoff` skill——會把專案拆成 Epic → User Story → Task，並把資料建進 `tools/kanban/`。
-
-## 設計品質：兩層防線
-
-UI 工作由兩個互補的層次把關——只有流程會做出「合規但醜」的畫面，所以套件兩層都內建：
-
-1. **設計系統（用什麼）**——Epic 0 以五個人工關卡階段建立設計系統（框架 → 風格方向 → design token → 元件庫 → 版面），持久化在 `ai/context/design-system.md`。之後所有 UI 任務都必須重用這些 token／元件；缺的元件照既有風格補做並登記回元件庫 inventory。
-2. **設計工藝（怎麼做得好看）**——`ai/skills/design-craft.md` 承載視覺品質紀律（Refactoring UI 原則、type scale、4 的倍數間距、分階色彩系統、depth 規則、互動五態），並附一份高品質開源參考清單，設計前先比對、不憑記憶瞎猜。交付前逐項對照 `ai/checklists/design-review-checklist.md`。
-
-兩層都住在 repo 裡，所以任何電腦、任何 agent（Claude Code、Codex⋯）clone 下來就拿到同一套設計水準——不依賴某台電腦 home 目錄裡裝的隱形 skill。
-
-## 對每個 agent 設下的規則
-
-出自 `AGENTS.md`，任何 agent 動手做事之前都要先讀：
-
-- 小型明確工作可直接處理；非小型、跨系統或需求模糊時才啟動完整治理流程。
-- 從最小範圍的情境探索開始，優先沿用既有架構、風格、token 與元件。
-- 只有看板已追蹤或使用者要求時才建立 task，不以缺少 task 阻擋明確工作。
-- 新畫面或重大互動流程需要畫面規格與 mockup；小型 UI 修正可直接實作並驗證。
-- 高風險變更需要安全、備份與回滾規劃，不可逆操作前要確認範圍。
-- 保留使用者既有變更，不修改不相關檔案，也不擅自新增 production dependency。
-- 交付時提供與風險相稱的測試、lint、build、截圖或殘留風險說明。
-
-Agent 的輸出從來都不等於核准——每個關卡仍需人工簽核（見 `ai/process/review-gates.md`）。
-
-## 這套件取代了什麼
-
-| 參考來源 | 借用的概念 |
-| --- | --- |
-| BMAD Method | 角色制的 AI 敏捷工作流程 |
-| GitHub Spec Kit | 規格優先：clarify → plan → tasks → implement |
-| Kiro Specs | 需求、設計、任務產物 |
-| Task Master | PRD 拆解為任務、模型路由 |
-| Serena | 語意化專案搜尋與情境擷取 |
-| SuperClaude | slash-command 風格的可重複工作流程 |
-| Archon | 確定性、以關卡為基礎的流程執行 |
-| Plandex | 大情境規劃、diff 審查、受控執行 |
-| CodeRabbit / Qodo | 以審查為先的品質關卡 |
-
-不內建（vendor）這些工具——本套件是一層可以呼叫或與它們共存的流程。
-
-## 專案結構
-
-```text
-AGENTS.md                     # Codex 入口
-CLAUDE.md                     # Claude Code 入口
-.claude/skills/               # Claude Code skills
-.claude/agents/               # Claude Code 子代理（subagents）
-.codex/skills/                # Codex skills
-.codex/config.toml            # Codex 本機預設設定（選用）
-ai/process/                   # 共用的流程規則
-ai/templates/                 # 規格書、任務卡、審查報告範本
-ai/context/                   # 專案地圖、設計系統與搜尋指引
-ai/checklists/                # 安全性、測試與設計審查檢查清單
-ai/skills/                    # .claude/skills 與 .codex/skills 共用的 skill 內容來源
-ai/artifacts/                 # 填寫完成的規格、mockup、任務卡、驗證報告（一個 Epic 一個資料夾）
-ai/examples/                  # 任務與功能產物範例
-tools/kanban/                 # 實作 ai/process/kanban.md 的本地看板
-CUSTOMIZATIONS.md             # 此 fork 相對原版的完整客製變更紀錄
-```
+Agent 的輸出不等於核准。詳細規則見 [`AGENTS.md`](AGENTS.md)、[`ai/process/review-gates.md`](ai/process/review-gates.md) 與 [`ai/process/definition-of-done.md`](ai/process/definition-of-done.md)。
 
 ## 快速開始
 
-**要開新專案？** 直接把這個 repo clone 下來，在裡面直接開發——`AGENTS.md`、`CLAUDE.md` 與整套 `ai/` 工具已經在根目錄了。
+### 方案 A：直接以 Monstrare 建立新專案
 
 ```bash
 git clone https://github.com/ttrrdfx/Monstrare.git my-project
 cd my-project
-rm -rf .git && git init   # 建立你自己的 git 歷史
 ```
 
-接著把它變成你的：把 `README.md`／`README en_us.md` 換成你自己專案的說明、改掉 `package.json` 的 `name`，並可視需要刪除 `scripts/install-into-project.sh` 與 `tools/kanban/` 底下的看板選型史料（`mockups/`、`mockup-decision.md`、`screen-spec.md`）——那些屬於 Monstrare 本身，不是你的專案產物。
-
-接著在這個資料夾裡開 Claude Code 或 Codex，直接講你想做什麼就好：
-
-```text
-我要做一個線上預約系統。
-```
-
-因為還沒有 Epic/User Story 待辦清單，這會觸發 `project-kickoff` skill：把構想拆解成 Epic → User Story → Task，並把資料建進 `tools/kanban/`。之後每張任務卡會各自走過 [治理流程怎麼運作](#架構流程怎麼運作) 裡的各個階段。
-
-**要加進既有的專案？** 跳到下面的[安裝到既有專案](#安裝到既有專案)，然後從情境探索開始，而不是 `project-kickoff`：
-
-```text
-使用 project-search skill 建立 ai/context/project-map.md 與 ai/context/code-search-guide.md。
-先不要實作任何東西。
-```
-
-```text
-針對 <功能構想> 使用 spec-interrogation。
-建立功能規格書，若涉及 UI 則一併建立 screen spec，並產出 AI-ready 任務卡。
-實作前先停下來，等待人工審閱。
-```
-
-## 安裝到既有專案
+若你確定不需要保留 Monstrare 的 git 歷史，再重新初始化；`rm -rf .git` 會永久刪除 clone 下來的歷史：
 
 ```bash
-scripts/install-into-project.sh /path/to/your/project
+rm -rf .git
+git init
 ```
 
-會把流程檔案、範本、檢查清單、Claude/Codex skills 與 agents、治理自我檢查腳本、GitHub PR/issue 模板，以及看板工具（剔除 Monstrare 自己的看板選型史料）複製到目標專案。
+接著把 `README.md`、`README en_us.md` 與 `package.json` 改成你的專案資訊，在這個目錄開啟 Claude Code 或 Codex，直接描述想建立的產品。全新專案可以從 `project-kickoff` skill 開始，逐層確認 Epic → User Story → Task。
 
-不會覆蓋：已存在的 `AGENTS.md`、`CLAUDE.md`、`ai/context/` 內的檔案、`ai/artifacts/`、`.codex/config.toml`，與既有的 `tools/kanban/`。一律更新為套件最新版：`ai/process/`、`ai/templates/`、`ai/checklists/`、`ai/skills/` 與 skill stubs——若你在專案裡改過這些套件檔案，重跑安裝前請先 commit。
+```text
+我要做一個線上預約系統。請用 project-kickoff 規劃完整 backlog，先不要實作。
+```
+
+### 方案 B：安裝到既有專案
+
+先 commit 或備份目標專案，再從另一個 Monstrare source checkout 執行：
 
 ```bash
-scripts/check-governance.sh   # 在本專案根目錄執行，做套件自我檢查
+git clone https://github.com/ttrrdfx/Monstrare.git /absolute/path/to/Monstrare
+node /absolute/path/to/Monstrare/scripts/monstrare.mjs install /absolute/path/to/project
 ```
+
+也可在 Monstrare source 根目錄使用相容 wrapper：
+
+```bash
+scripts/install-into-project.sh /absolute/path/to/project
+```
+
+首次安裝會：
+
+- 複製 Monstrare 管理的流程、skills、看板程式與驗證工具。
+- 對已存在的 seed-only 檔案（例如 `AGENTS.md`、`CLAUDE.md`、`ai/context/*.md`）保持原內容。
+- 建立空的 `tools/kanban/cards/` 與 `epics.json`（僅在不存在時）。
+- 寫入 `.monstrare/manifest.json`，記錄版本、所有權與 SHA-256 checksum。
+
+`install` 適用於尚未安裝 Monstrare 的專案；若已存在 manifest，CLI 會要求改用 `status` 或 `upgrade`。沒有 manifest 的舊版 Monstrare 專案也不要重跑 `install`，請走下一節的 legacy 升級流程。由於首次安裝會寫入 managed 路徑，務必先 commit，並在完成後檢查 `git diff`。
+
+安裝後建議先建立專案情境：
+
+```text
+使用 project-search 建立 ai/context/project-map.md 與 ai/context/code-search-guide.md，先不要實作。
+```
+
+## CLI 指令
+
+所有指令都從新版 Monstrare source checkout 執行，且 source 與 target 必須是不同目錄。
+
+| 指令 | 用途 | 是否寫入 target |
+| --- | --- | --- |
+| `install <project>` | 首次安裝並建立 manifest | 是 |
+| `status <project>` | 顯示來源版、安裝版、檔案分類與衝突 | 否 |
+| `upgrade <project> --dry-run` | 預覽完整升級計畫 | 否 |
+| `upgrade <project>` | 套用無衝突的升級 | 是 |
+| `verify <project>` | 執行目標專案的治理、測試與語法檢查 | 只執行檢查；目標測試本身仍可能有副作用 |
+
+`status` 與 `upgrade` 支援 `--json`，方便 agent 或 script 消費。衝突、無法辨識的 legacy、驗證失敗與不合法用法都會回傳非零 exit code。
+
+## 升級既有安裝
+
+先取得並切換到要安裝的 release，再依序執行狀態檢查、dry-run、升級與驗證：
+
+```bash
+monstrare_source=/absolute/path/to/Monstrare
+target_project=/absolute/path/to/project
+
+git -C "$monstrare_source" fetch --tags
+git -C "$monstrare_source" checkout v1.0.0
+node "$monstrare_source/scripts/monstrare.mjs" status "$target_project"
+node "$monstrare_source/scripts/monstrare.mjs" upgrade "$target_project" --dry-run
+node "$monstrare_source/scripts/monstrare.mjs" upgrade "$target_project"
+node "$monstrare_source/scripts/monstrare.mjs" verify "$target_project"
+git -C "$target_project" diff --stat
+```
+
+### 如何閱讀 dry-run
+
+| 分類 | 意義 | 升級行為 |
+| --- | --- | --- |
+| `add` | 新版有、target 缺少 | 新增 |
+| `update` | managed 檔未被下游修改 | 備份後更新 |
+| `remove` | 上游已移除，且 target 仍是原安裝內容 | 備份後移除 |
+| `preserve` | 已是最新版，或屬於專案資料／seed-only | 不改內容 |
+| `conflict` | managed 檔被修改、類型不符或無法安全辨識 | 整次升級停止 |
+
+`status` 與 `upgrade --dry-run` 嚴格唯讀。若有 `conflict`，實際 `upgrade` 會在建立 lock 或備份前停止，不會覆寫客製檔。先 commit 現況，再決定保留、移植或還原衝突內容，重新執行 dry-run；v1.0.0 不提供自動三方 merge。
+
+沒有 `.monstrare/manifest.json` 的舊安裝會以 bundled baseline 保守辨識。目前內建 `7749c12` baseline；無法唯一辨識的版本會 fail closed，不會猜測或寫入。
+
+### 備份與失敗回復
+
+成功升級會保留 `.monstrare/backups/<timestamp>-<from>-to-<to>/`：
+
+- `journal.json` 記錄 `add`／`update`／`remove`、migration 與交易狀態。
+- `files/` 保存被更新或刪除前的檔案。
+- `manifest.json` 保存既有安裝的舊 manifest。
+- `migrations/<id>/snapshot.json` 保存 migration 宣告範圍內的資料快照（若有 migration）。
+
+一般 JavaScript 例外會自動回復，journal 會標記為 `rolled-back`。若遇到斷電、`SIGKILL` 或 `rollback-failed`，停止對 target 寫入並保留整個備份：依 journal 把 `update`／`remove` 從 `files/` 放回原相對路徑、刪除本次 `add` 的新檔，再還原舊 manifest；legacy 專案原本沒有 manifest，應移除本次新增的 `.monstrare/manifest.json`。有 migration 時也要依 snapshot 還原其完整宣告範圍。完成後重跑 `verify` 並檢查 git diff。
+
+升級器不會執行 `git reset`、`git clean`、自動 commit、push、下載新版或刪除備份。
+
+## 檔案所有權
+
+`monstrare-package.json` 是配送與所有權的單一事實來源：
+
+| 類型 | 升級策略 | 代表路徑 |
+| --- | --- | --- |
+| `managed` | 未修改時可更新；下游有修改則衝突停止 | `ai/process/`、`ai/skills/`、`scripts/lib/`、看板程式與測試 |
+| `seedOnly` | 缺少時新增；一旦存在即由專案擁有 | `AGENTS.md`、`CLAUDE.md`、`.codex/config.toml`、`ai/context/*.md` |
+| `projectData` | 永遠保留，不覆寫、不刪除 | `ai/artifacts/`、`tools/kanban/cards/`、`tools/kanban/epics.json` |
+| `sourceOnly` | 只留在 Monstrare source，不配送 | 根 README、`CUSTOMIZATIONS.md`、發布測試與看板選型史料 |
 
 ## AI 看板
 
-`ai/process/kanban.md` 是看板政策——追蹤的是任務是否已就緒、可以安全交給 agent 執行，而不只是狀態。`tools/kanban/` 是這個政策的其中一種實作：零依賴的本地看板，把政策的 12 個階段簡化成 6 條車道（Backlog → Blocked → Ready → Implementing → Verify → Done）。這個工具是選用的，政策本身不要求一定要用它。
-
 ```bash
-npm run kanban   # 開 http://127.0.0.1:4420
+npm run kanban
 ```
+
+終端機會顯示實際網址。Server 只 bind `127.0.0.1`，預設從 port `4420` 開始；若被占用會依序嘗試下一個 port，也可用 `KANBAN_PORT` 指定起始 port。
 
 ![看板畫面](tools/kanban/docs/board-screenshot.png)
 
-- **新增卡片**——點任一車道底部的「+ 新增卡片」，id 由 server 自動配號。
-- **移動卡片**——拖到別的車道就改變階段，同車道內拖曳可調整順序。
-- **編輯詳情**——點卡片開啟詳情面板：owner、risk、agent、Readiness 勾選、Review Gates、留言。
-- **依 Epic/User Story 看進度**——切到右上角「藍圖」分頁，以聚焦樹瀏覽、縮放、平移與收合分支。
-- **即時同步**——同一個本機 server 下的頁籤會自動反映 API 或 JSON 檔案變更；詳情輸入尚未儲存時不會被外部更新覆寫。
+看板把完整的 12 階段治理政策簡化為六條操作車道：Backlog → Blocked → Ready → Implementing → Verify → Done。你可以新增卡片、拖曳排序、編輯 owner／risk／agent、勾選 Readiness 與 Review Gates、加入留言，或切換到「藍圖」查看 Epic → User Story → Task 聚焦樹。
 
 ![藍圖畫面](tools/kanban/docs/roadmap-screenshot.png)
 
-所有操作都即時寫回 `cards/*.json`——沒有儲存按鈕、沒有資料庫；`git commit`／`git push` 就是存檔與分享狀態的方式。完整的欄位規格與 API 說明：[`tools/kanban/README.md`](tools/kanban/README.md)。
+每次操作會直接寫回 `tools/kanban/cards/*.json`；沒有資料庫或雲端帳號，git 就是持久化與跨機器同步層。同一本機 server 的頁籤會透過 SSE 自動重取更新；若詳情視窗有未儲存輸入，背景更新不會覆蓋正在編輯的欄位。
+
+完整 schema、API、WIP 上限、同步契約與操作方式見 [`tools/kanban/README.md`](tools/kanban/README.md)。
+
+## 設計品質
+
+UI 工作由兩層共同約束：
+
+1. `ai/context/design-system.md` 記錄 design token、元件與版面 inventory，後續功能優先重用。
+2. `ai/skills/design-craft.md` 與 `ai/checklists/design-review-checklist.md` 規範 type scale、間距、色彩、depth、互動狀態與交付檢查。
+
+小型視覺修正可直接實作；新畫面或重大互動流程才需要 screen spec、mockup 變體與人工選型。
+
+## 專案結構
+
+```text
+AGENTS.md                     # Codex 與其他 agent 的 repository 規則
+CLAUDE.md                     # Claude Code 入口
+.claude/skills/               # Claude Code skill stubs
+.claude/agents/               # Claude Code subagents
+.codex/skills/                # Codex skill stubs
+ai/process/                   # 工作流程、DoR／DoD 與 review gates
+ai/skills/                    # 各平台 skill 共用的正本
+ai/templates/                 # 規格、task card、驗證報告範本
+ai/context/                   # 專案、架構、設計系統與搜尋地圖
+ai/artifacts/                 # 專案擁有的規格、任務與驗證證據
+scripts/monstrare.mjs         # install／status／upgrade／verify CLI
+scripts/lib/                  # manifest、plan、transaction、migration、verify
+scripts/manifests/            # 可辨識的 legacy baseline
+test/monstrare/               # 安裝與升級器測試
+tools/kanban/                 # 本機看板、JSON API、SSE 與測試
+monstrare-package.json        # 版本、Node 下限與檔案所有權
+```
 
 ## 驗證
 
-需求為 Node.js 20 以上版本，不需要安裝 production dependency。
+不需要先安裝 npm 套件：
 
 ```bash
-npm test        # 執行 17 項看板資料、互動與 SSE 測試
-npm run check   # 測試 + server syntax + 治理檔案完整性
+npm test        # 執行全部看板與升級器測試
+npm run check   # 測試 + Node/shell 語法 + governance 完整性
 ```
+
+驗證已涵蓋 manifest／checksum、唯讀 dry-run、legacy 辨識、衝突保護、project-data 保留、交易式回復、migration 範圍、升級後 API E2E 與 README 本機連結。
+
+`node scripts/monstrare.mjs verify <project>` 會執行 target checkout 內的治理 script 與測試；它不是 sandbox，只能對你信任的 checkout 使用。
+
+## 已知限制與安全邊界
+
+- 看板是本機工具，沒有帳號或權限系統；SSE 不提供跨機器即時同步。
+- git merge 衝突仍需人工處理；同一卡片的同時儲存採最後成功寫入者狀態。
+- v1.0.0 不自動合併下游客製的 managed 檔案，也不批次派送到多個專案。
+- 沒有 manifest 且不符合 bundled baseline 的舊安裝會被拒絕，需要人工確認來源版本。
+- 斷電、`SIGKILL` 與同一使用者惡意置換路徑的極小 TOCTOU 視窗，仍需依 backup／journal 與 git 人工復原。
+- Migration module 是受信任的 source code；新增 migration 必須經 code review。
+
+## 維護者發布檢查清單
+
+發布只由維護者明確執行；CLI 不會自動建立 tag 或 push。
+
+- 同步更新 `VERSION` 與 `monstrare-package.json` 的嚴格 SemVer，並確認 `minimumNode`。
+- 檢查 `managed`／`seedOnly`／`projectData`／`sourceOnly`；要支援新的無 manifest 舊版時，新增並測試對應 baseline。
+- 資料 schema 有差異時，在 `scripts/migrations/index.mjs` 登錄完整、連續、可重跑的 migration 鏈。
+- 執行 `npm run check` 與 `git diff --check`，確認 legacy、衝突、project-data、fault injection、migration、verify 與 E2E 全部通過。
+- 同步核對中英文 README 的版本、指令、本機連結、備份、衝突與回復說明。
+- 人工檢查 release diff 與 `git status`，再建立 annotated tag：
+
+```bash
+git tag -a v1.0.0 -m "Monstrare v1.0.0"
+```
+
+## 靈感來源
+
+Monstrare 借鏡 BMAD Method、GitHub Spec Kit、Kiro Specs、Task Master、Serena、SuperClaude、Archon、Plandex，以及 CodeRabbit／Qodo 的規格優先、情境探索、受控執行與審查概念；這些工具沒有被 vendor 進 repository，Monstrare 可以獨立使用或與它們共存。
+
+## License
+
+[MIT](LICENSE)

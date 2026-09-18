@@ -1,0 +1,64 @@
+{
+  "id": "TASK-011",
+  "title": "實作交易式升級、備份與失敗回復",
+  "content": "安全套用無衝突的新增、更新與移除計畫，在失敗時回復已碰觸檔案，並只於成功後更新安裝 manifest。",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-15",
+  "epic": "Monstrare 版本升級機制",
+  "userStory": "保護客製內容",
+  "track": "n/a",
+  "dependsOn": [
+    "TASK-009",
+    "TASK-010"
+  ],
+  "order": 2,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/Monstrare 版本升級機制/feature-spec.md",
+    "screenSpec": "",
+    "mockupDecision": "",
+    "taskCard": "ai/artifacts/Monstrare 版本升級機制/task-cards/TASK-011.md",
+    "verificationReport": "ai/artifacts/Monstrare 版本升級機制/verification/TASK-011.md",
+    "pr": ""
+  },
+  "refs": [
+    "scripts/monstrare.mjs",
+    "scripts/lib/",
+    "ai/artifacts/Monstrare 版本升級機制/architecture-plan.md"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test test/monstrare/transaction.test.mjs test/monstrare/cli.test.mjs",
+      "npm run check",
+      "for f in scripts/monstrare.mjs scripts/lib/*.mjs test/monstrare/transaction.test.mjs; do node --check \"$f\"; done",
+      "git diff --check"
+    ],
+    "findings": [
+      "針對性測試 18/18 通過，涵蓋交易狀態、add/update/remove、conflict、lock、stale plan、五階段故障注入、symlink 與看板 E2E。",
+      "完整檢查 61/61 通過，governance kit check passed。",
+      "安全審查確認備份與 staging 為 0700、manifest-last、rollback 前 checksum 驗證，且不會覆寫 project-data。"
+    ],
+    "residual": "Node.js 沒有 openat 型別的路徑操作，lstat 與 rename 間仍有同一使用者主動置換路徑的極小 TOCTOU 視窗；突發斷電或 SIGKILL 需依保留的 journal/backup 人工復原，既有 lock 也採保守策略不自動移除。"
+  },
+  "comments": []
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "version": "1.0.0",
+  "minimumNode": "20.0.0",
+  "managed": [
+    ".claude/agents/**",
+    ".claude/skills/**",
+    ".codex/skills/**",
+    "VERSION",
+    "ai/checklists/**",
+    "ai/examples/**",
+    "ai/process/**",
+    "ai/skills/**",
+    "ai/templates/**",
+    "scripts/check-governance.sh",
+    "scripts/check-syntax.sh",
+    "scripts/lib/**",
+    "scripts/manifests/**",
+    "scripts/migrations/**",
+    "scripts/monstrare.mjs",
+    "monstrare-package.json",
+    "tools/kanban/README.md",
+    "tools/kanban/docs/**",
+    "tools/kanban/index.html",
+    "tools/kanban/*.test.mjs",
+    "tools/kanban/server.mjs"
+  ],
+  "seedOnly": [
+    ".codex/config.toml",
+    ".github/ISSUE_TEMPLATE/ai_task.yml",
+    ".github/pull_request_template.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "ai/artifacts/README.md",
+    "ai/context/*.md"
+  ],
+  "projectData": [
+    "ai/artifacts/*/**",
+    "tools/kanban/cards/**",
+    "tools/kanban/epics.json"
+  ],
+  "sourceOnly": [
+    ".gitignore",
+    "CUSTOMIZATIONS.md",
+    "LICENSE",
+    "README en_us.md",
+    "README.md",
+    "package-lock.json",
+    "package.json",
+    "scripts/install-into-project.sh",
+    "test/monstrare/**",
+    "tools/kanban/mockup-decision.md",
+    "tools/kanban/mockups/**",
+    "tools/kanban/screen-spec.md"
+  ]
+}

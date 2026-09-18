@@ -33,7 +33,7 @@ improvements:
   overwriting unsaved modal input.
 - Makes agent governance proportional to task size and risk instead of forcing
   every small change through the full specification workflow.
-- Adds 17 automated tests, retained UI evidence, and stable `npm test` and
+- Adds comprehensive Kanban and upgrader tests, retained UI evidence, and stable `npm test` and
   `npm run check` entry points.
 
 See [`CUSTOMIZATIONS.md`](CUSTOMIZATIONS.md) for the complete change inventory,
@@ -204,6 +204,12 @@ Stop before implementation for human review.
 scripts/install-into-project.sh /path/to/your/project
 ```
 
+The equivalent direct command is:
+
+```bash
+node scripts/monstrare.mjs install /path/to/your/project
+```
+
 Copies process files, templates, checklists, Claude/Codex skills and agents,
 the governance self-check, GitHub PR/issue templates, and the kanban tool
 (minus Monstrare's own board-design history) into the target project.
@@ -217,6 +223,28 @@ modified those kit files, commit before re-running the installer.
 ```bash
 scripts/check-governance.sh   # self-check from the repo root
 ```
+
+## Upgrade an Existing Installation
+
+Node.js 20 or newer is required. Keep the new source and the target project in separate directories. Fetch and select the release first, then run the upgrader from that source checkout:
+
+```bash
+monstrare_source=/absolute/path/to/Monstrare
+target_project=/absolute/path/to/project
+
+git -C "$monstrare_source" fetch --tags
+git -C "$monstrare_source" checkout v1.0.0
+node "$monstrare_source/scripts/monstrare.mjs" status "$target_project"
+node "$monstrare_source/scripts/monstrare.mjs" upgrade "$target_project" --dry-run
+node "$monstrare_source/scripts/monstrare.mjs" upgrade "$target_project"
+node "$monstrare_source/scripts/monstrare.mjs" verify "$target_project"
+```
+
+`status` and `upgrade --dry-run` are read-only. The dry run lists `add`, `update`, `remove`, `preserve`, and `conflict` actions. A conflict returns exit code 1, and an actual `upgrade` stops before creating a lock or backup, without overwriting the customized file. Commit local work first, then choose whether to retain, port, or revert each conflicting file and rerun the dry run. The first release does not perform automatic merges.
+
+A successful upgrade prints its `.monstrare/backups/<timestamp>-<from>-to-<to>/` path. `journal.json` records every `add`/`update`/`remove` and transaction state, `files/` contains pre-update or pre-removal copies, and `manifest.json` contains the prior manifest when the project already had one. Ordinary JavaScript failures roll back automatically and mark the journal `rolled-back`. After power loss, `SIGKILL`, or `rollback-failed`, stop writes and preserve the entire backup: copy every journal `update`/`remove` entry back from `files/`, delete paths recorded as `add`, then restore the backed-up manifest for an existing installation; for a legacy project that had no manifest, remove the newly written `.monstrare/manifest.json`. When migrations ran, also restore each declared scope from `migrations/<id>/snapshot.json`. Rerun `verify` and inspect the Git diff. The upgrader never runs `git reset`, `git clean`, or an automatic commit.
+
+`verify` runs the governance self-check, `tools/kanban/*.test.mjs`, every CLI/server Node syntax check, and shell syntax checks in the target. A failed check or a missing script in an older project is named explicitly and returns a non-zero status. These tests are code from the target project and run with the current user's permissions; use `verify` only on a checkout you trust. It is not a sandbox.
 
 ## AI Kanban
 
@@ -252,6 +280,17 @@ schema and API reference: [`tools/kanban/README.md`](tools/kanban/README.md).
 Node.js 20 or later is required. There are no production dependencies.
 
 ```bash
-npm test        # run 17 roadmap, interaction, and SSE tests
-npm run check   # tests + server syntax + governance-file integrity
+npm test        # run all Kanban and upgrader tests
+npm run check   # tests + all Node/shell syntax + governance-file integrity
 ```
+
+## Maintainer Release Checklist
+
+Only a maintainer explicitly publishes a release; this checklist never pushes or tags automatically.
+
+- Update strict SemVer in both `VERSION` and `monstrare-package.json`, and confirm `minimumNode`.
+- Review `managed`, `seedOnly`, `projectData`, and `sourceOnly` ownership. To keep supporting a prior manifest-less release, add and test its `scripts/manifests/` baseline before changing managed files.
+- If the data schema changes, register a complete, continuous, rerunnable migration chain in `scripts/migrations/index.mjs`. Keep the registry empty when no data migration is required.
+- Run `npm run check`; confirm legacy, conflict, project-data, fault-injection, migration, `verify`, and post-upgrade API E2E coverage passes.
+- Check both READMEs' commands and local links, keeping version, backup, conflict, and recovery guidance in sync.
+- Review the release diff and `git status`. Create an annotated tag manually (for example, `git tag -a v1.0.0 -m "Monstrare v1.0.0"`) and push it through the team's release process. Do not publish from the upgrader.

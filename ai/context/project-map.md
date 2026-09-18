@@ -1,6 +1,6 @@
 # 專案地圖
 
-狀態：已更新（2026-09-07）。
+狀態：已更新（2026-09-15）。
 
 ## 產品
 
@@ -34,7 +34,7 @@
 
 | 指令 | 用途 | 備註 |
 |---|---|---|
-| `npm run kanban` | 在 `127.0.0.1:4420` 啟動看板 | 可用 `KANBAN_PORT` 覆寫 port |
+| `npm run kanban` | 從 `127.0.0.1:4420` 啟動看板 | port 被占用時依序遞增；可用 `KANBAN_PORT` 覆寫起始 port |
 | `npm test` | 執行全部看板測試 | 使用 `node:test` |
 | `npm run check` | 測試、server 語法與治理檔案檢查 | 交付前執行 |
 | `scripts/install-into-project.sh <path>` | 安裝 Monstrare 到既有專案 | 不覆寫專案擁有的 context/artifacts |

@@ -1,0 +1,52 @@
+{
+  "id": "TASK-008",
+  "title": "建立版本與 manifest 架構基礎",
+  "content": "建立來源版本、檔案所有權、安裝 manifest、checksum 與安全路徑驗證的單一資料契約，供安裝與升級共用。",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "ttrrdfx",
+  "agent": "",
+  "approvalRequired": true,
+  "createdAt": "2026-09-15",
+  "epic": "Monstrare 版本升級機制",
+  "userStory": "查看安裝版本",
+  "track": "n/a",
+  "dependsOn": [],
+  "order": 1,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": false,
+    "test": false,
+    "code_review": false
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/Monstrare 版本升級機制/feature-spec.md",
+    "screenSpec": "",
+    "mockupDecision": "",
+    "taskCard": "ai/artifacts/Monstrare 版本升級機制/task-cards/TASK-008.md",
+    "verificationReport": "",
+    "pr": ""
+  },
+  "refs": [
+    "scripts/install-into-project.sh",
+    "scripts/check-governance.sh",
+    "ai/artifacts/Monstrare 版本升級機制/architecture-plan.md"
+  ],
+  "evidence": {
+    "commands": [],
+    "findings": [],
+    "residual": ""
+  },
+  "comments": []
+}

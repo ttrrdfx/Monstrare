@@ -1,0 +1,65 @@
+{
+  "id": "TASK-009",
+  "title": "實作 manifest 驅動的新安裝與相容 wrapper",
+  "content": "讓全新下游專案透過同一份 manifest 完成安裝並留下可供後續升級辨識的紀錄，同時保留原 shell 指令相容性。",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-15",
+  "epic": "Monstrare 版本升級機制",
+  "userStory": "安全升級",
+  "track": "n/a",
+  "dependsOn": [
+    "TASK-008"
+  ],
+  "order": 3,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/Monstrare 版本升級機制/feature-spec.md",
+    "screenSpec": "",
+    "mockupDecision": "",
+    "taskCard": "ai/artifacts/Monstrare 版本升級機制/task-cards/TASK-009.md",
+    "verificationReport": "ai/artifacts/Monstrare 版本升級機制/verification/TASK-009.md",
+    "pr": ""
+  },
+  "refs": [
+    "scripts/install-into-project.sh",
+    "scripts/monstrare.mjs",
+    "README.md"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test test/monstrare/install.test.mjs test/monstrare/cli.test.mjs test/monstrare/manifest.test.mjs test/monstrare/paths.test.mjs",
+      "git diff --check",
+      "node --check scripts/monstrare.mjs",
+      "node --check scripts/lib/install.mjs",
+      "bash -n scripts/install-into-project.sh",
+      "npm run check"
+    ],
+    "findings": [
+      "針對性測試 21/21 通過",
+      "完整檢查 39/39 通過，governance kit check passed",
+      "安全性與可維護性審查無阻擋問題"
+    ],
+    "residual": "首次安裝失敗時可能留下 manifest 寫入前已複製的 managed 檔案，但不會留下完成 manifest；完整 rollback 與並行 lock 由 TASK-011 負責。"
+  },
+  "comments": []
+}

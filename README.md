@@ -2,7 +2,7 @@
 
 [English](README%20en_us.md) | **繁體中文**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-6d5dfc.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.0.1-6d5dfc.svg)](VERSION)
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A520-339933.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -10,7 +10,7 @@
 
 Monstrare 把 Agent 工作規則、規格與任務範本、品質關卡，以及一個本機 Kanban 看板一起放進專案。Claude Code、Codex 或其他 agentic 工具只要讀取 repository 內的入口檔，就能沿用同一套協作方式，不依賴某台電腦上的隱藏設定。
 
-目前版本為 **v1.0.0**，需要 **Node.js 20 以上**，沒有 production dependency。
+目前版本為 **v1.0.1**，需要 **Node.js 20 以上**，沒有 production dependency。
 
 ## 它解決什麼問題
 
@@ -19,6 +19,11 @@ Monstrare 把 Agent 工作規則、規格與任務範本、品質關卡，以及
 - 架構、安全性與資料邊界等問題，直到程式碼完成後才被發現。
 - 團隊沒有共同的規格、任務就緒條件、驗收標準與人工核准位置。
 - Monstrare 本身升級時，容易誤蓋下游專案的看板資料或客製內容。
+
+## v1.0.1 藍圖修正
+
+- 雙指捲動或滑鼠滾輪改為平移藍圖；觸控板雙指開合或 Ctrl／⌘ 加滾輪可縮放。
+- 連續捲動與縮放期間停用畫布的 transform 過場，改善跟手延遲。
 
 ## v1.0.0 包含什麼
 
@@ -129,7 +134,7 @@ monstrare_source=/absolute/path/to/Monstrare
 target_project=/absolute/path/to/project
 
 git -C "$monstrare_source" fetch --tags
-git -C "$monstrare_source" checkout v1.0.0
+git -C "$monstrare_source" checkout v1.0.1
 node "$monstrare_source/scripts/monstrare.mjs" status "$target_project"
 node "$monstrare_source/scripts/monstrare.mjs" upgrade "$target_project" --dry-run
 node "$monstrare_source/scripts/monstrare.mjs" upgrade "$target_project"
@@ -257,7 +262,7 @@ npm run check   # 測試 + Node/shell 語法 + governance 完整性
 - 人工檢查 release diff 與 `git status`，再建立 annotated tag：
 
 ```bash
-git tag -a v1.0.0 -m "Monstrare v1.0.0"
+git tag -a v1.0.1 -m "Monstrare v1.0.1"
 ```
 
 推送版本 tag 會觸發 GitHub Actions 的正式 Release bundle 建置；推送前先照

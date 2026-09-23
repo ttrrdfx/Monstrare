@@ -12,6 +12,7 @@ const {
   createKanbanUiState,
   fitViewport,
   resolveSelectedEpicName,
+  wheelPanDelta,
   wheelZoomFactor
 } = await import("data:text/javascript," + encodeURIComponent(source));
 
@@ -35,6 +36,13 @@ test("normalizes wheel delta modes and caps a single event", () => {
   assert.equal(wheelZoomFactor(-3, 1, 600), wheelZoomFactor(-48, 0, 600));
   assert.equal(wheelZoomFactor(-1, 2, 600), wheelZoomFactor(-120, 0, 600));
   assert.ok(wheelZoomFactor(-1, 0, 600) < 1.002);
+});
+
+test("keeps trackpad pan distance proportional across wheel delta modes", () => {
+  assert.equal(wheelPanDelta(12.5, 0, 600), 12.5);
+  assert.equal(wheelPanDelta(-3, 1, 600), -48);
+  assert.equal(wheelPanDelta(1, 2, 600), 600);
+  assert.equal(wheelPanDelta(Number.NaN, 0, 600), 0);
 });
 
 test("fits and centers content inside the available viewport", () => {

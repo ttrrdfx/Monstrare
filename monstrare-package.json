@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minimumNode": "20.0.0",
   "managed": [
     ".claude/agents/**",

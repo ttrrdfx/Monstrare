@@ -15,7 +15,7 @@ import { createUpgradeRequestHandler, createUpgradeService } from '../../tools/k
 
 const sourceRoot = path.resolve(import.meta.dirname, '../..');
 const commit = 'a'.repeat(40);
-const assetUrl = 'https://github.com/ttrrdfx/Monstrare/releases/download/v1.0.0/monstrare-v1.0.0.bundle.json';
+const assetUrl = 'https://github.com/ttrrdfx/Monstrare/releases/download/v1.0.1/monstrare-v1.0.1.bundle.json';
 
 async function fixture(t) {
   const targetRoot = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'monstrare-task20-e2e-')));
@@ -26,7 +26,7 @@ async function fixture(t) {
   const digest = crypto.createHash('sha256').update(bundle).digest('hex');
   const asset = {
     id: 2020,
-    name: 'monstrare-v1.0.0.bundle.json',
+    name: 'monstrare-v1.0.1.bundle.json',
     digest: `sha256:${digest}`,
     browser_download_url: assetUrl,
   };
@@ -36,7 +36,7 @@ async function fixture(t) {
       requests.push({ url, headers: options.headers });
       if (url === GITHUB_RELEASE_API_URL) {
         return new Response(JSON.stringify({
-          id: 1020, draft: false, prerelease: false, tag_name: 'v1.0.0', assets: [asset],
+          id: 1020, draft: false, prerelease: false, tag_name: 'v1.0.1', assets: [asset],
         }), { headers: { 'content-type': 'application/json' } });
       }
       if (url === assetUrl) return new Response(bundle);
@@ -105,8 +105,8 @@ test('TASK-020 real bundle → fake GitHub → HTTP check/apply → journal/veri
   const checkResponse = await request(origin, 'check', {});
   assert.equal(checkResponse.status, 200);
   const plan = await checkResponse.json();
-  assert.equal(plan.releaseTag, 'v1.0.0');
-  assert.equal(plan.sourceVersion, '1.0.0');
+  assert.equal(plan.releaseTag, 'v1.0.1');
+  assert.equal(plan.sourceVersion, '1.0.1');
   assert.equal(plan.manifestStatus, 'legacy');
   assert.equal(plan.applicable, true);
   assert.ok(plan.counts.add + plan.counts.update + plan.counts.remove > 0);
@@ -133,13 +133,13 @@ test('TASK-020 real bundle → fake GitHub → HTTP check/apply → journal/veri
   });
   const applied = await applyResponse.json();
   assert.equal(applyResponse.status, 200, JSON.stringify(applied));
-  assert.equal(applied.toVersion, '1.0.0');
+  assert.equal(applied.toVersion, '1.0.1');
   assert.equal(applied.restartRequired, true);
   assert.equal(applied.verification.ok, true);
   assert.ok(applied.backupPath.startsWith('.monstrare/backups/'));
   const backup = path.join(targetRoot, applied.backupPath);
   assert.equal(JSON.parse(await fs.readFile(path.join(backup, 'journal.json'))).state, 'completed');
-  assert.equal((await readInstallManifest(path.join(targetRoot, '.monstrare/manifest.json'))).installedVersion, '1.0.0');
+  assert.equal((await readInstallManifest(path.join(targetRoot, '.monstrare/manifest.json'))).installedVersion, '1.0.1');
   const after = await snapshotFixtureData(targetRoot);
   for (const [relativePath, content] of Object.entries(before)) {
     assert.equal(after[relativePath], content, relativePath);
@@ -151,7 +151,7 @@ test('TASK-020 real bundle → fake GitHub → HTTP check/apply → journal/veri
 
   const restarted = await startUpgradedBoard(t, targetRoot);
   const restartedStatus = await (await fetch(`${restarted}/api/upgrade/status`)).json();
-  assert.equal(restartedStatus.installedVersion, '1.0.0');
+  assert.equal(restartedStatus.installedVersion, '1.0.1');
   assert.equal((await fetch(`${restarted}/api/cards`)).status, 200);
   assert.equal((await fetch(`${restarted}/api/epics`)).status, 200);
 });

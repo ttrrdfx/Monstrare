@@ -74,7 +74,7 @@ test('stock legacy fixture upgrades, verifies, preserves project data, and serve
   for (const [relativePath, contents] of Object.entries(projectDataBefore)) {
     assert.equal(projectDataAfter[relativePath], contents, relativePath);
   }
-  assert.equal((await readInstallManifest(path.join(targetRoot, '.monstrare/manifest.json'))).installedVersion, '1.0.0');
+  assert.equal((await readInstallManifest(path.join(targetRoot, '.monstrare/manifest.json'))).installedVersion, '1.0.1');
   assert.equal(JSON.parse(await fs.readFile(path.join(upgrade.backupRoot, 'journal.json'))).state, 'completed');
 
   let stdout = '';

@@ -209,11 +209,11 @@ test('materialized real bundle is a planner-compatible sourceRoot', { timeout: 3
   const materializedRoot = await temporaryDirectory(t, 'monstrare-bundle-source-');
   await installProject({ sourceRoot, targetRoot, installedAt: '2026-09-21T00:00:00.000Z' });
   const serialized = serializeReleaseBundle(await buildReleaseBundle({ sourceRoot, createdFrom: commitSha }));
-  await materializeReleaseBundle({ bundle: serialized, targetRoot: materializedRoot, expectedVersion: '1.0.0' });
+  await materializeReleaseBundle({ bundle: serialized, targetRoot: materializedRoot, expectedVersion: '1.0.1' });
 
   const plan = await planProjectUpgrade({ sourceRoot: materializedRoot, targetRoot });
-  assert.equal(plan.sourceVersion, '1.0.0');
-  assert.equal(plan.installedVersion, '1.0.0');
+  assert.equal(plan.sourceVersion, '1.0.1');
+  assert.equal(plan.installedVersion, '1.0.1');
   assert.equal(plan.applicable, true);
   assert.equal(plan.summary.conflict, 0);
 });

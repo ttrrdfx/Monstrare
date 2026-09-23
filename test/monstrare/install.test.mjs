@@ -50,7 +50,7 @@ test('new install writes matching managed hashes and empty project-owned board d
   });
   const manifest = await readInstallManifest(path.join(targetRoot, '.monstrare', 'manifest.json'));
 
-  assert.equal(manifest.installedVersion, '1.0.0');
+  assert.equal(manifest.installedVersion, '1.0.1');
   assert.equal(result.targetRoot, await fs.realpath(targetRoot));
   for (const [relativePath, record] of Object.entries(manifest.files)) {
     if (record.ownership === 'managed') {
@@ -129,7 +129,7 @@ test('legacy shell wrapper installs a runnable board', { timeout: 20_000 }, asyn
   const targetRoot = await temporaryProject(t);
   const wrapper = path.join(sourceRoot, 'scripts/install-into-project.sh');
   const { stdout } = await execFileAsync(wrapper, [targetRoot]);
-  assert.match(stdout, /Installed Monstrare 1\.0\.0/);
+  assert.match(stdout, /Installed Monstrare 1\.0\.1/);
 
   const child = execFile(
     process.execPath,

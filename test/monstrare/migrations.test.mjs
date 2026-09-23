@@ -364,7 +364,7 @@ test('a migration write that bypasses the transaction context is rejected and re
 test('cards/epics migrations require validation and migrated data is readable by the board server', { timeout: 20_000 }, async (t) => {
   assert.throws(
     () => validateMigrationRegistry([{
-      id: 'board-v2', fromVersion: '0.9.0', toVersion: '1.0.0',
+      id: 'board-v2', fromVersion: '0.9.0', toVersion: '1.0.1',
       allowedPaths: ['tools/kanban/cards/**'],
       check: async () => 'needed', apply: async () => {},
     }]),
@@ -391,7 +391,7 @@ test('cards/epics migrations require validation and migrated data is readable by
   const migration = {
     id: 'board-v2',
     fromVersion: '0.9.0',
-    toVersion: '1.0.0',
+    toVersion: '1.0.1',
     allowedPaths: ['tools/kanban/cards/**', 'tools/kanban/epics.json'],
     async check(context) {
       const card = await context.readJson('tools/kanban/cards/TASK-901.json');

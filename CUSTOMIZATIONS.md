@@ -18,8 +18,9 @@
 - 支援切換 Epic、收合 Epic／User Story、點 Task 開啟原有詳情視窗。
 - 支援按鈕、鍵盤、滾輪、拖曳與 Pointer Events：縮放範圍 25%–160%、
   平移、雙指縮放及回到全景。
-- 縮放以游標或視口中心為錨點；觸控板 wheel delta 經正規化，避免細小事件
-  造成倍率跳動。
+- v1.0.1 起雙指捲動與滑鼠滾輪平移，雙指開合或 Ctrl／⌘ 加滾輪縮放；
+  操作期間停用 transform 過場以保持跟手。縮放以游標或視口中心為錨點，
+  wheel delta 經正規化，避免細小事件造成倍率跳動。
 - 補上 loading、empty、error、read-only 與大型資料狀態，並提供可重現的
   `?roadmapState=loading|empty|error|readonly` 預覽參數。
 - 加入 focus ring、ARIA 名稱、`aria-expanded`、live region 與鍵盤方向導覽。

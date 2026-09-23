@@ -10,6 +10,9 @@ Copy this repo into any project. Claude Code, Codex, and other agentic tools
 then follow the same gated process — spec, plan, task cards, implementation,
 verification, review — before code reaches production.
 
+Current version: **v1.0.1**. This patch makes two-finger scrolling pan the roadmap,
+keeps pinch or Ctrl/Command-wheel zoom, and removes transform animation during gestures.
+
 ## Preview
 
 The kit ships a local, zero-dependency Kanban board (`tools/kanban/`, `npm run kanban`)
@@ -235,7 +238,7 @@ monstrare_source=/absolute/path/to/Monstrare
 target_project=/absolute/path/to/project
 
 git -C "$monstrare_source" fetch --tags
-git -C "$monstrare_source" checkout v1.0.0
+git -C "$monstrare_source" checkout v1.0.1
 node "$monstrare_source/scripts/monstrare.mjs" status "$target_project"
 node "$monstrare_source/scripts/monstrare.mjs" upgrade "$target_project" --dry-run
 node "$monstrare_source/scripts/monstrare.mjs" upgrade "$target_project"
@@ -295,5 +298,5 @@ Only a maintainer explicitly publishes a release; this checklist never pushes or
 - If the data schema changes, register a complete, continuous, rerunnable migration chain in `scripts/migrations/index.mjs`. Keep the registry empty when no data migration is required.
 - Run `npm run check`; confirm legacy, conflict, project-data, fault-injection, migration, `verify`, and post-upgrade API E2E coverage passes.
 - Check both READMEs' commands and local links, keeping version, backup, conflict, and recovery guidance in sync.
-- Review the release diff and `git status`. Create an annotated tag manually (for example, `git tag -a v1.0.0 -m "Monstrare v1.0.0"`) and push it through the team's release process. Do not publish from the upgrader.
+- Review the release diff and `git status`. Create an annotated tag manually (for example, `git tag -a v1.0.1 -m "Monstrare v1.0.1"`) and push it through the team's release process. Do not publish from the upgrader.
 - Pushing the version tag triggers the GitHub Actions published-release bundle workflow. Before pushing, follow [the release runbook](tools/kanban/docs/releasing.md) for version, deterministic build, and asset digest checks; this checklist never creates or pushes a tag automatically.

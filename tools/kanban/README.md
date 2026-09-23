@@ -44,7 +44,7 @@ npm run kanban
 - **新增卡片**：點任一車道底部的「+ 新增卡片」，輸入標題即可（id 由 server 自動配號）。
 - **移動卡片**：直接把卡片拖到別的車道（跨欄即改變 `stage`），同欄內拖曳可調整 `order`。
 - **編輯詳情**：點卡片本體開啟詳情面板，可改 owner／risk／agent／Readiness 勾選／Review Gates 勾選／留言等所有欄位。
-- **看整體進度**：切到右上角「藍圖」分頁，選擇 Epic 後瀏覽聚焦樹；可用工具列、滾輪、拖曳、觸控或鍵盤操作（需先在 [`epics.json`](epics.json) 定義 Epic／User Story）。
+- **看整體進度**：切到右上角「藍圖」分頁，選擇 Epic 後瀏覽聚焦樹；雙指捲動或滑鼠滾輪可平移，觸控板雙指開合或 Ctrl／⌘ 加滾輪可縮放，也可用工具列、拖曳、觸控或鍵盤操作（需先在 [`epics.json`](epics.json) 定義 Epic／User Story）。
 - 所有操作都是即時寫回 `cards/*.json`，沒有「儲存」按鈕；要復原就用 `git checkout` 還原檔案再重新整理頁面。
 
 ## 資料與同步

@@ -28,7 +28,7 @@ test('README local links resolve and both languages document the executable upgr
     const text = await fs.readFile(path.join(sourceRoot, readme), 'utf8');
     for (const command of requiredCommands) assert.match(text, new RegExp(command.replaceAll('$', '\\$')));
     assert.match(text, /\.monstrare\/backups/);
-    assert.match(text, /git tag -a v1\.0\.0/);
+    assert.match(text, /git tag -a v1\.0\.1/);
 
     const links = [...text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)]
       .map((match) => match[1])

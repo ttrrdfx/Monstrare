@@ -145,7 +145,7 @@ test('manifest install status and repeated dry-runs are byte- and mtime-read-onl
   const after = await snapshotTree(targetRoot);
 
   assert.equal(first.manifestStatus, 'present');
-  assert.equal(first.installedVersion, '1.0.0');
+  assert.equal(first.installedVersion, '1.0.1');
   assert.equal(first.applicable, true);
   assert.deepEqual(second, first);
   assert.deepEqual(after, before);

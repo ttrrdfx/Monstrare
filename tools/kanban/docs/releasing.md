@@ -35,6 +35,6 @@
 
 ## 失敗、回復與下游驗收
 
-- 在沒有 asset、workflow 中斷或 digest 尚未可用時，先檢查失敗原因與 release/tag 狀態；修正流程後由維護者在同一 commit/tag 重跑 workflow。不要移動現有 tag 來「修復」不同內容。
+- 在沒有 asset、workflow 中斷或 digest 尚未可用時，先檢查失敗原因與 release/tag 狀態；修正 workflow 本身後，可從 `main` 手動執行 `Release bundle` 並輸入既有 tag。手動 run 仍 checkout、建置並驗證該 tag 指向的 commit，不得移動現有 tag 來「修復」不同內容。
 - 若已發布錯誤 asset 或 digest 不同，停止下游更新並先保存 workflow log、asset id/digest 與錯誤檔案作為證據。經人工核准後，可用 `gh release delete-asset vX.Y.Z monstrare-vX.Y.Z.bundle.json --repo ttrrdfx/Monstrare` 移除壞 asset，再重跑同一 tag；若 tag 本身或版本內容錯誤，改發新的版本，不要覆寫既有 tag。此刪除操作不可由 workflow 自動執行。
 - 下游看板只讀 GitHub **正式** Release 的固定檔名 asset，且要求 GitHub digest 與下載內容一致。先在目標專案預覽 dry-run、檢查衝突與備份，再二次確認套用；完成後執行 `verify` 並**重啟本機看板 server**，不要把 release 發布成功視為下游更新已完成。真實 staging/tag 上傳和跨層驗收屬於 TASK-020，需另行授權。

@@ -18,6 +18,8 @@ function validationScript() {
 
 test('release action SHA pins, privilege boundary, and exact asset scope', () => {
   assert.match(workflow, /push:\n    tags:\n      - 'v\*'/);
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /fetch-depth: 0/);
   assert.match(workflow, /permissions:\n  contents: read/);
   assert.match(workflow, /release:\n    needs: build\n    runs-on: ubuntu-latest\n    permissions:\n      contents: write/);
   assert.match(workflow, /release:[\s\S]*?actions\/download-artifact@/);
@@ -55,7 +57,7 @@ test('tag validator accepts matching strict SemVer and rejects mismatch before p
       cwd: temp,
       input: validationScript(),
       encoding: 'utf8',
-      env: { ...process.env, GITHUB_REF: ref, RELEASE_TAG: tag, GITHUB_OUTPUT: output },
+      env: { ...process.env, RELEASE_REF: ref, RELEASE_TAG: tag, GITHUB_OUTPUT: output },
     });
   }
 
@@ -90,7 +92,7 @@ if (args[0] === 'api') {
     process.stdout.write(JSON.stringify({object: {type: 'tag', sha: 'a'.repeat(40)}})); process.exit(0);
   }
   if (args[1].includes('/git/tags/')) {
-    process.stdout.write(JSON.stringify({object: {type: 'commit', sha: process.env.SCENARIO === 'moved' ? 'b'.repeat(40) : process.env.GITHUB_SHA}})); process.exit(0);
+    process.stdout.write(JSON.stringify({object: {type: 'commit', sha: process.env.SCENARIO === 'moved' ? 'b'.repeat(40) : process.env.RELEASE_COMMIT}})); process.exit(0);
   }
   if (process.env.SCENARIO === 'new' && !fs.existsSync(process.env.CALLS)) {
     process.stderr.write('HTTP 404 Not Found\\n'); process.exit(1);
@@ -127,7 +129,7 @@ process.exit(actual === expected ? 0 : 1);
       env: {
         ...process.env, PATH: `${bin}:${process.env.PATH}`, CALLS: log, SCENARIO: scenario,
         RUNNER_TEMP: temp, GITHUB_REPOSITORY: 'ttrrdfx/Monstrare',
-        GITHUB_SHA: 'a'.repeat(40),
+        RELEASE_COMMIT: 'a'.repeat(40),
         RELEASE_TAG: 'v1.2.3', RELEASE_VERSION: '1.2.3', RELEASE_ASSET: asset,
         RELEASE_DIGEST: digest,
       },

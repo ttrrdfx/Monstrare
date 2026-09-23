@@ -4,39 +4,49 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing vSemVer tag to retry without moving it
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      RELEASE_REF: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
     outputs:
       version: ${{ steps.package.outputs.version }}
       asset: ${{ steps.package.outputs.asset }}
       digest: ${{ steps.package.outputs.digest }}
+      commit: ${{ steps.package.outputs.commit }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          ref: ${{ env.RELEASE_REF }}
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '20'
       - name: Validate tag and source version
         id: version
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import { parseSemVer } from './scripts/lib/manifest.mjs';
 
           const tag = process.env.RELEASE_TAG;
-          if (process.env.GITHUB_REF !== `refs/tags/${tag}` || !tag?.startsWith('v')) {
+          if (process.env.RELEASE_REF !== `refs/tags/${tag}` || !tag?.startsWith('v')) {
             throw new Error('release must be triggered by a version tag');
           }
           const version = tag.slice(1);
@@ -57,8 +67,10 @@ jobs:
         run: |
           set -euo pipefail
           asset="monstrare-v${RELEASE_VERSION}.bundle.json"
+          release_commit=$(git rev-parse HEAD)
           mkdir dist
-          npm run package-release -- --created-from "$GITHUB_SHA" --output "dist/$asset"
+          npm run package-release -- --created-from "$release_commit" --output "dist/$asset"
+          export RELEASE_COMMIT="$release_commit"
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import crypto from 'node:crypto';
@@ -68,11 +80,11 @@ jobs:
           const asset = `monstrare-v${version}.bundle.json`;
           const bytes = fs.readFileSync(`dist/${asset}`);
           const bundle = parseReleaseBundle(bytes, { expectedVersion: version });
-          if (bundle.createdFrom !== process.env.GITHUB_SHA) {
+          if (bundle.createdFrom !== process.env.RELEASE_COMMIT) {
             throw new Error('bundle commit does not match tagged commit');
           }
           const digest = crypto.createHash('sha256').update(bytes).digest('hex');
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\nasset=${asset}\ndigest=${digest}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\nasset=${asset}\ndigest=${digest}\ncommit=${process.env.RELEASE_COMMIT}\n`);
           NODE
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -95,16 +107,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_PROMPT_DISABLED: '1'
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ format('v{0}', needs.build.outputs.version) }}
           RELEASE_VERSION: ${{ needs.build.outputs.version }}
           RELEASE_ASSET: ${{ needs.build.outputs.asset }}
           RELEASE_DIGEST: ${{ needs.build.outputs.digest }}
+          RELEASE_COMMIT: ${{ needs.build.outputs.commit }}
         run: |
           set -euo pipefail
           [[ "$RELEASE_TAG" == "v$RELEASE_VERSION" ]]
           [[ "$RELEASE_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
           [[ "$RELEASE_ASSET" == "monstrare-v${RELEASE_VERSION}.bundle.json" ]]
           [[ "$RELEASE_DIGEST" =~ ^[a-f0-9]{64}$ ]]
+          [[ "$RELEASE_COMMIT" =~ ^[a-f0-9]{40}$ ]]
           [[ "$GITHUB_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]
           asset_path="dist/$RELEASE_ASSET"
           [[ -f "$asset_path" && ! -L "$asset_path" ]]
@@ -121,7 +135,7 @@ jobs:
             tag_type=$(jq -r '.object.type' <<< "$tagged_object")
             tag_sha=$(jq -r '.object.sha' <<< "$tagged_object")
           fi
-          [[ "$tag_type" == commit && "$tag_sha" == "$GITHUB_SHA" ]] || { echo 'Remote tag no longer points to the built commit' >&2; exit 1; }
+          [[ "$tag_type" == commit && "$tag_sha" == "$RELEASE_COMMIT" ]] || { echo 'Remote tag no longer points to the built commit' >&2; exit 1; }
           release_api="repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG"
           if gh api "$release_api" > "$release_file" 2> "$error_file"; then
             jq -e --arg tag "$RELEASE_TAG" '.tag_name == $tag and .draft == false and .prerelease == false' "$release_file" > /dev/null

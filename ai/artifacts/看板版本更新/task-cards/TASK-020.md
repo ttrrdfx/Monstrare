@@ -8,7 +8,7 @@
 - 上層 User Story：US-1 至 US-5
 - 分軌：前後端串接
 - 前置任務（dependsOn）：TASK-018、TASK-019
-- 狀態：發布前驗證完成，等待真實 v1.0.0 workflow（2026-09-23）
+- 狀態：完成（2026-09-23）
 - 風險等級：高
 - Agent owner：Codex
 - 人工核准者：使用者（2026-09-21，核准架構、安全與測試契約；最終驗收待 TASK-018、TASK-019 完成）
@@ -79,6 +79,6 @@
 - 測試輸出：跨層 E2E 1/1、完整 137/137、syntax 與 governance 通過。
 - 螢幕截圖：沿用同版 TASK-017/018 desktop/mobile loading、available、conflict、
   confirm、applying、success、verification-failed 證據；本次另實際確認真實 server 的 loading/error。
-- 已知限制：真實 v1.0.0 workflow、Release asset 與 GitHub digest 尚待本次發布補證；
-  本次瀏覽器控制介面未提供 console log 讀取。
+- 已知限制：本次瀏覽器控制介面未提供 console log 讀取；官方 actions Node 20 runtime
+  已由 runner 強制切至 Node 24，且 ubuntu-latest 將遷移 Ubuntu 26，後續需更新 pin。
 - 後續任務：無；完成後進入最終人工驗收與 merge gate。

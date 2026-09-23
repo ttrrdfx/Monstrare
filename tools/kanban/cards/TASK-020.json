@@ -2,7 +2,7 @@
   "id": "TASK-020",
   "title": "完成版本更新端對端、安全與視覺驗證",
   "content": "以可重跑的證據矩陣證明從 release bundle 到 Variant A 使用者旅程的完整行為、安全邊界、專案資料保留、失敗回復與視覺/無障礙規格均符合已核准規格。",
-  "stage": "backlog",
+  "stage": "done",
   "risk": "high",
   "owner": "ttrrdfx",
   "agent": "Codex",
@@ -57,9 +57,10 @@
     "findings": [
       "發布前完整 npm run check 137/137 通過；跨層 E2E 覆蓋 bundle、fake GitHub、HTTP、transaction、verify 與重啟後狀態。",
       "發現 E2E 若置於 managed tools/kanban 會污染下游 verify，已移至 source-only test/monstrare 並重驗通過。",
-      "既有桌面/行動截圖、鍵盤/焦點與本次真實 server loading/error 流程均無阻擋性問題。"
+      "既有桌面/行動截圖、鍵盤/焦點與本次真實 server loading/error 流程均無阻擋性問題。",
+      "run 35818994097、v1.0.0 Release API、asset 下載 digest 與 bundle parser 均通過；真實 UI 顯示 verified Release 並對本機客製 fail closed。"
     ],
-    "residual": "等待 TASK-019 真實 v1.0.0 workflow、Release asset 與 GitHub digest 證據；完成前維持 backlog。"
+    "residual": "官方 actions Node 20 runtime 已由 runner 強制切至 Node 24，ubuntu-latest 將遷移 Ubuntu 26；後續維護需更新 pin 並重跑 release regression。"
   },
   "comments": []
 }

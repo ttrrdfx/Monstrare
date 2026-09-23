@@ -2,7 +2,7 @@
   "id": "TASK-019",
   "title": "建立 GitHub Release 發布流程與維護文件",
   "content": "建立受控、可重現的 tag-to-release 流程，將 release bundle 以固定名稱附到 GitHub 正式 Release，並提供維護者可重跑的驗證與回復指引。",
-  "stage": "verify",
+  "stage": "done",
   "risk": "high",
   "owner": "ttrrdfx",
   "agent": "Codex",
@@ -58,9 +58,10 @@
     "findings": [
       "本機 workflow 測試 3/3、完整 npm run check 136/136 通過；兩次 bundle 建置 byte-for-byte 一致。",
       "固定官方 action SHA；read-only build 與僅發布 job contents:write 分離；模擬 digest 不同、缺失、tag 移動時皆 fail closed。",
-      "發布 runbook 與中英主要升級語意已補齊，驗證報告已建立。"
+      "發布 runbook 與中英主要升級語意已補齊，驗證報告已建立。",
+      "GitHub Actions run 35818994097 成功；v1.0.0 正式 Release asset 的遠端與下載 SHA-256 一致。"
     ],
-    "residual": "未執行真實 tag/release/push；GitHub runner、digest 時序與乾淨 checkout 的 staging 驗收留給 TASK-020；code review 與人工驗收未完成，維持 verify。"
+    "residual": "本次真實發布已通過；runner 警告官方 actions 的 Node 20 runtime 被強制切到 Node 24，且 ubuntu-latest 將遷移 Ubuntu 26，後續需更新 pin 並回歸。"
   },
   "comments": []
 }

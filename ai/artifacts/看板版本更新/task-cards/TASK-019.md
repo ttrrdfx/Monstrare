@@ -8,7 +8,7 @@
 - 上層 User Story：US-2 預覽變更、US-3 阻擋不安全更新
 - 分軌：前後端串接
 - 前置任務（dependsOn）：TASK-014
-- 狀態：實作與本機驗證完成，待 code review／人工驗收（2026-09-22）
+- 狀態：完成（2026-09-23）
 - 風險等級：高
 - Agent owner：Codex
 - 人工核准者：使用者（2026-09-21，核准架構、供應鏈安全與測試契約；待 TASK-014 完成）
@@ -79,7 +79,7 @@
   Ruby YAML parse、官方 action tag `git ls-remote`、`git diff --check`。
 - 測試輸出：針對性 3/3、完整 136/136 通過；連續 bundle 建置 byte-for-byte 相同。
 - 螢幕截圖：不適用。
-- 已知限制：本卡沒有真實 tag／release 上傳，也無乾淨 checkout staging 結果；
-  GitHub runner 與 digest 延遲留給 TASK-020，code review 與人工驗收尚未完成。
+- 已知限制：真實 v1.0.0 run、Release asset 與下載 digest 已驗證；runner 對舊版
+  官方 actions 發出 Node 20 → 24 強制切換及 ubuntu-latest 遷移警告，後續需更新 pin。
 - 後續任務：TASK-020。
 - 驗證報告：`ai/artifacts/看板版本更新/verification/TASK-019.md`。

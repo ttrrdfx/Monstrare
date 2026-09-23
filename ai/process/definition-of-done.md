@@ -14,6 +14,8 @@
 - 高風險變更的安全性備註。
 - 已知限制。
 - 後續任務。
+- 若任務已由看板追蹤，本卡 `stage`、`agent`、`links.verificationReport`、
+  `evidence` 已與實作、驗證及審查進度核對；未完成的關卡不得標為 `done`。
 
 ## 不算完成
 

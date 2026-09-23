@@ -1,0 +1,66 @@
+{
+  "id": "TASK-016",
+  "title": "建立看板版本更新 API 與寫入防護",
+  "content": "在本機看板 server 提供穩定、可測、fail-closed 的 status/check/apply API，只在同來源二次確認、計畫未過期且重新驗證一致時呼叫既有 transaction。",
+  "stage": "done",
+  "risk": "high",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-21",
+  "epic": "看板版本更新",
+  "userStory": "確認並更新",
+  "track": "backend",
+  "dependsOn": [
+    "TASK-015"
+  ],
+  "order": 4,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/看板版本更新/feature-spec.md",
+    "screenSpec": "ai/artifacts/看板版本更新/screen-spec-版本更新.md",
+    "mockupDecision": "ai/artifacts/看板版本更新/mockup-decision-版本更新.md",
+    "taskCard": "ai/artifacts/看板版本更新/task-cards/TASK-016.md",
+    "verificationReport": "ai/artifacts/看板版本更新/verification/TASK-016.md",
+    "pr": ""
+  },
+  "refs": [
+    "tools/kanban/server.mjs",
+    "tools/kanban/upgrade-api.mjs",
+    "tools/kanban/upgrade-api.test.mjs",
+    "scripts/lib/plan.mjs",
+    "scripts/lib/transaction.mjs",
+    "scripts/lib/verify.mjs"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test tools/kanban/upgrade-api.test.mjs test/monstrare/transaction.test.mjs",
+      "node --check tools/kanban/server.mjs tools/kanban/upgrade-api.mjs",
+      "npm run check",
+      "git diff --check"
+    ],
+    "findings": [
+      "針對性測試 29/29 通過，完整 npm run check 118/118 通過。",
+      "HTTP boundary 覆蓋同源、cross-site、JSON/body limit、精確 schema 與 confirm；client 無法指定 repository、release、source 或 target。",
+      "Apply 重新比對 release metadata、plan entries、來源 inventory hashes、目標 snapshot 與 manifest hash；check/apply mutex、transaction lock、rollback/verify failure 與 shutdown cleanup 均有測試。"
+    ],
+    "residual": "真實 GitHub release/digest/redirect 由 TASK-019/TASK-020 staging 驗證；verify 失敗依核准契約不自動 rollback；UI 串接與視覺/E2E 由 TASK-018/TASK-020 負責。"
+  },
+  "comments": []
+}

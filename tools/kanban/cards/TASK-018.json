@@ -1,0 +1,66 @@
+{
+  "id": "TASK-018",
+  "title": "串接版本更新 UI/API 與二次確認",
+  "content": "將 Variant A 的狀態機串上真實 status/check/apply API，以獨立二次確認完成從預覽到寫入結果的完整用戶旅程。",
+  "stage": "done",
+  "risk": "high",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-21",
+  "epic": "看板版本更新",
+  "userStory": "確認並更新",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-016",
+    "TASK-017"
+  ],
+  "order": 1,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/看板版本更新/feature-spec.md",
+    "screenSpec": "ai/artifacts/看板版本更新/screen-spec-版本更新.md",
+    "mockupDecision": "ai/artifacts/看板版本更新/mockup-decision-版本更新.md",
+    "taskCard": "ai/artifacts/看板版本更新/task-cards/TASK-018.md",
+    "verificationReport": "ai/artifacts/看板版本更新/verification/TASK-018.md",
+    "pr": ""
+  },
+  "refs": [
+    "tools/kanban/index.html",
+    "tools/kanban/upgrade-api.mjs",
+    "tools/kanban/upgrade-ui.test.mjs",
+    "tools/kanban/upgrade-api.test.mjs",
+    "tools/kanban/upgrade-integration.test.mjs"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test tools/kanban/upgrade-integration.test.mjs tools/kanban/upgrade-ui.test.mjs tools/kanban/upgrade-api.test.mjs",
+      "npm run check",
+      "git diff --check",
+      "Browser QA with local fake HTTP services"
+    ],
+    "findings": [
+      "針對性測試 31/31、全專案 133/133 通過；syntax 與 governance 通過。",
+      "本機 HTTP handler + fake provider 驗證 status/check/apply；瀏覽器成功與驗證失敗旅程各為 check 1 次、apply 1 次。",
+      "二次確認、套用鎖定、備份與驗證摘要已驗證，截圖見 verification report。"
+    ],
+    "residual": "Code review 與人工驗收待完成；真實 GitHub、行動版及跨瀏覽器完整矩陣由 TASK-020 驗證。"
+  },
+  "comments": []
+}

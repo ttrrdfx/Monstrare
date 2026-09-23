@@ -32,11 +32,13 @@ required_files=(
   "scripts/monstrare.mjs"
   "scripts/check-syntax.sh"
   "scripts/lib/manifest.mjs"
+  "scripts/lib/release-bundle.mjs"
   "scripts/lib/plan.mjs"
   "scripts/lib/paths.mjs"
   "scripts/lib/migrations.mjs"
   "scripts/lib/verify.mjs"
   "scripts/migrations/index.mjs"
+  "scripts/package-release.mjs"
   "scripts/manifests/legacy-7749c12.json"
 )
 
@@ -83,11 +85,19 @@ fi
 
 node --input-type=module -e '
   import { readFile } from "node:fs/promises";
-  import { readSourceManifest } from "./scripts/lib/manifest.mjs";
+  import { classifyInventoryPath, readSourceManifest } from "./scripts/lib/manifest.mjs";
   const version = (await readFile("VERSION", "utf8")).trim();
   const manifest = await readSourceManifest("monstrare-package.json");
   if (manifest.version !== version) {
     throw new Error(`VERSION (${version}) does not match monstrare-package.json (${manifest.version})`);
+  }
+  for (const [file, expected] of [
+    ["scripts/lib/release-bundle.mjs", "managed"],
+    ["scripts/package-release.mjs", "managed"],
+    ["test/monstrare/release-bundle.test.mjs", "source-only"],
+  ]) {
+    const actual = classifyInventoryPath(file, manifest);
+    if (actual !== expected) throw new Error(`${file} must be ${expected}, got ${actual}`);
   }
 '
 

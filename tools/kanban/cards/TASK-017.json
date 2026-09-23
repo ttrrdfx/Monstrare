@@ -1,0 +1,62 @@
+{
+  "id": "TASK-017",
+  "title": "實作 Variant A 版本更新 UI 與狀態呈現",
+  "content": "將已核准的 Variant A 置中摘要 Dialog 實作到現有單檔看板 UI，建立可獨立測試的版本更新狀態機，但本卡不串真實 API。",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-21",
+  "epic": "看板版本更新",
+  "userStory": "發現更新",
+  "track": "frontend",
+  "dependsOn": [
+    "TASK-014"
+  ],
+  "order": 2,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/看板版本更新/feature-spec.md",
+    "screenSpec": "ai/artifacts/看板版本更新/screen-spec-版本更新.md",
+    "mockupDecision": "ai/artifacts/看板版本更新/mockup-decision-版本更新.md",
+    "taskCard": "ai/artifacts/看板版本更新/task-cards/TASK-017.md",
+    "verificationReport": "ai/artifacts/看板版本更新/verification/TASK-017.md",
+    "pr": ""
+  },
+  "refs": [
+    "tools/kanban/index.html",
+    "tools/kanban/upgrade-ui.test.mjs",
+    "ai/context/design-system.md",
+    "ai/artifacts/看板版本更新/mockups/版本更新-variant-a.html"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test tools/kanban/upgrade-ui.test.mjs tools/kanban/roadmap-data.test.mjs tools/kanban/realtime-sync.test.mjs",
+      "npm run check",
+      "git diff --check"
+    ],
+    "findings": [
+      "Variant A 對話框、獨立狀態機與 fixture adapter 已實作；針對性測試 23/23、全專案測試 126/126 通過。",
+      "桌面 1440×900、手機 390×844 截圖與 320px 溢出、焦點、inert、dirty card modal 隔離皆已驗證。"
+    ],
+    "residual": "待完成 Code review 與人工驗收；本卡僅使用 fixture，真實 API 串接由 TASK-018 負責。"
+  },
+  "comments": []
+}

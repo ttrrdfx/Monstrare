@@ -70,6 +70,9 @@
 | Epic Nav | 已實作 | 預設/hover/focus/選取/手機水平捲動 | `--surface*`、`--ink*`、`--accent*` | `tools/kanban/index.html` | `ai/artifacts/看板體驗改善/verification/screenshots/TASK-002-desktop.jpg` | 看板體驗改善 TASK-002 |
 | Mind-map canvas / Hierarchy node / Connector | 已實作 | loading/empty/error/唯讀/收合/行動版 | 現有看板 CSS variables | `tools/kanban/index.html` | `ai/artifacts/看板體驗改善/verification/screenshots/TASK-002-mobile.jpg` | 看板體驗改善 TASK-002 |
 | Sync Status | 已實作 | connecting/live/reconnecting/error | `--ink-dim`、`--good`、`--warn`、`--crit` | `tools/kanban/index.html` | 瀏覽器人工檢視 | 看板體驗改善 TASK-005 |
+| Version Update Trigger | 已實作 | 預設/hover/focus/停用/載入/行動版 | `--surface*`、`--ink*`、`--line*`、`--accent*` | `tools/kanban/index.html` | `ai/artifacts/看板版本更新/verification/screenshots/TASK-017-desktop-available.jpg` | 看板版本更新 TASK-017 |
+| Version Update Dialog | 已實作 | 檢查中/已是最新/可更新/衝突/錯誤/套用中/成功/驗證失敗/權限不足/行動版 | `--surface*`、`--ink*`、`--line*`、`--accent*`、`--good*`、`--warn*`、`--crit*`、`--shadow-modal` | `tools/kanban/index.html` | `ai/artifacts/看板版本更新/verification/screenshots/TASK-017-mobile-blocked.jpg` | 看板版本更新 TASK-017 |
+| Update Confirmation Alert / Progress | 已實作 | 預設/確認/送出中/計畫過期/套用失敗/rollback 失敗 | `--surface*`、`--ink*`、`--accent*`、`--warn*`、`--crit*`、`--shadow-modal` | `tools/kanban/index.html` | `ai/artifacts/看板版本更新/verification/screenshots/TASK-017-desktop-loading.jpg` | 看板版本更新 TASK-017 |
 
 （「來源階段」記錄這個元件是 S4 初建，還是後續某個功能 Epic 補做並回登的。）
 

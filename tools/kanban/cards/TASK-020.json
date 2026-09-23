@@ -1,0 +1,65 @@
+{
+  "id": "TASK-020",
+  "title": "完成版本更新端對端、安全與視覺驗證",
+  "content": "以可重跑的證據矩陣證明從 release bundle 到 Variant A 使用者旅程的完整行為、安全邊界、專案資料保留、失敗回復與視覺/無障礙規格均符合已核准規格。",
+  "stage": "backlog",
+  "risk": "high",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-21",
+  "epic": "看板版本更新",
+  "userStory": "了解結果",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-018",
+    "TASK-019"
+  ],
+  "order": 2,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/看板版本更新/feature-spec.md",
+    "screenSpec": "ai/artifacts/看板版本更新/screen-spec-版本更新.md",
+    "mockupDecision": "ai/artifacts/看板版本更新/mockup-decision-版本更新.md",
+    "taskCard": "ai/artifacts/看板版本更新/task-cards/TASK-020.md",
+    "verificationReport": "ai/artifacts/看板版本更新/verification/TASK-020.md",
+    "pr": ""
+  },
+  "refs": [
+    "test/monstrare/update-e2e.test.mjs",
+    "test/monstrare/transaction.test.mjs",
+    "tools/kanban/upgrade-integration.test.mjs",
+    "ai/artifacts/看板版本更新/architecture-plan.md"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test test/monstrare/update-e2e.test.mjs",
+      "npm run check",
+      "git diff --check",
+      "Browser QA on local board"
+    ],
+    "findings": [
+      "發布前完整 npm run check 137/137 通過；跨層 E2E 覆蓋 bundle、fake GitHub、HTTP、transaction、verify 與重啟後狀態。",
+      "發現 E2E 若置於 managed tools/kanban 會污染下游 verify，已移至 source-only test/monstrare 並重驗通過。",
+      "既有桌面/行動截圖、鍵盤/焦點與本次真實 server loading/error 流程均無阻擋性問題。"
+    ],
+    "residual": "等待 TASK-019 真實 v1.0.0 workflow、Release asset 與 GitHub digest 證據；完成前維持 backlog。"
+  },
+  "comments": []
+}

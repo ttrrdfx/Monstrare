@@ -18,12 +18,14 @@
     "scripts/manifests/**",
     "scripts/migrations/**",
     "scripts/monstrare.mjs",
+    "scripts/package-release.mjs",
     "monstrare-package.json",
     "tools/kanban/README.md",
     "tools/kanban/docs/**",
     "tools/kanban/index.html",
     "tools/kanban/*.test.mjs",
-    "tools/kanban/server.mjs"
+    "tools/kanban/server.mjs",
+    "tools/kanban/upgrade-api.mjs"
   ],
   "seedOnly": [
     ".codex/config.toml",

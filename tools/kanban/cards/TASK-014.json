@@ -1,0 +1,63 @@
+{
+  "id": "TASK-014",
+  "title": "建立版本更新 Release bundle 與共用契約基礎",
+  "content": "建立可重現、可在寫入前完整驗證的 Monstrare JSON release bundle，並產生可供既有 planner 讀取的受控暫存 sourceRoot。",
+  "stage": "done",
+  "risk": "high",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-21",
+  "epic": "看板版本更新",
+  "userStory": "預覽變更",
+  "track": "backend",
+  "dependsOn": [],
+  "order": 5,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/看板版本更新/feature-spec.md",
+    "screenSpec": "ai/artifacts/看板版本更新/screen-spec-版本更新.md",
+    "mockupDecision": "ai/artifacts/看板版本更新/mockup-decision-版本更新.md",
+    "taskCard": "ai/artifacts/看板版本更新/task-cards/TASK-014.md",
+    "verificationReport": "ai/artifacts/看板版本更新/verification/TASK-014.md",
+    "pr": ""
+  },
+  "refs": [
+    "scripts/lib/release-bundle.mjs",
+    "scripts/package-release.mjs",
+    "test/monstrare/release-bundle.test.mjs",
+    "monstrare-package.json",
+    "scripts/check-governance.sh"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test test/monstrare/release-bundle.test.mjs",
+      "node --check scripts/package-release.mjs scripts/lib/release-bundle.mjs",
+      "npm run check",
+      "git diff --check"
+    ],
+    "findings": [
+      "針對性測試 11/11 通過，完整 npm run check 89/89 通過。",
+      "安全審查確認 bundle 在 materialize 前完整驗證，拒絕 traversal、symlink、非法 mode、hash/base64 不符與 entry/size 超限。",
+      "錯誤訊息不回顯 bundle 內容；新檔案已納入 manifest ownership 與 governance 檢查。"
+    ],
+    "residual": "GitHub asset digest、redirect 與正式 release 行為由 TASK-015、TASK-019、TASK-020 驗證；同一本機使用者主動競態置換路徑仍有極小 TOCTOU 視窗。"
+  },
+  "comments": []
+}

@@ -115,6 +115,13 @@ scripts/install-into-project.sh /absolute/path/to/project
 
 ## 升級既有安裝
 
+本機看板的版本更新只接受 GitHub **正式 Release** 上固定名稱的
+`monstrare-vX.Y.Z.bundle.json` asset（需核對 digest）；不使用 draft、prerelease
+或任意 checkout。看板上先執行 dry-run、檢查衝突與備份，再二次確認套用；
+套用後執行驗證並**重啟看板 server**。下方 CLI 範例是原有的本機 source
+升級途徑，不代表看板會直接讀取該 checkout。發布／失敗重跑指引見
+[`tools/kanban/docs/releasing.md`](tools/kanban/docs/releasing.md)。
+
 先取得並切換到要安裝的 release，再依序執行狀態檢查、dry-run、升級與驗證：
 
 ```bash
@@ -252,6 +259,10 @@ npm run check   # 測試 + Node/shell 語法 + governance 完整性
 ```bash
 git tag -a v1.0.0 -m "Monstrare v1.0.0"
 ```
+
+推送版本 tag 會觸發 GitHub Actions 的正式 Release bundle 建置；推送前先照
+[`發布維運手冊`](tools/kanban/docs/releasing.md) 完成版本、可重現建置與
+digest 檢查。此清單不會自動建立或推送 tag。
 
 ## 靈感來源
 

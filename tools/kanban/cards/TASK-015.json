@@ -1,0 +1,64 @@
+{
+  "id": "TASK-015",
+  "title": "實作固定 GitHub Release 取得與安全暫存",
+  "content": "只從固定公開 repository ttrrdfx/Monstrare 取得最新正式 release，將 digest 驗證過的專用 bundle 安全轉成有限時間的本地 source session。",
+  "stage": "done",
+  "risk": "high",
+  "owner": "ttrrdfx",
+  "agent": "Codex",
+  "approvalRequired": true,
+  "createdAt": "2026-09-21",
+  "epic": "看板版本更新",
+  "userStory": "預覽變更",
+  "track": "backend",
+  "dependsOn": [
+    "TASK-014"
+  ],
+  "order": 7,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": false,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  },
+  "links": {
+    "featureSpec": "ai/artifacts/看板版本更新/feature-spec.md",
+    "screenSpec": "ai/artifacts/看板版本更新/screen-spec-版本更新.md",
+    "mockupDecision": "ai/artifacts/看板版本更新/mockup-decision-版本更新.md",
+    "taskCard": "ai/artifacts/看板版本更新/task-cards/TASK-015.md",
+    "verificationReport": "ai/artifacts/看板版本更新/verification/TASK-015.md",
+    "pr": ""
+  },
+  "refs": [
+    "scripts/lib/github-release.mjs",
+    "test/monstrare/github-release.test.mjs",
+    "scripts/lib/release-bundle.mjs",
+    "ai/artifacts/看板版本更新/architecture-plan.md"
+  ],
+  "evidence": {
+    "commands": [
+      "node --test test/monstrare/github-release.test.mjs test/monstrare/release-bundle.test.mjs",
+      "node --check scripts/lib/github-release.mjs",
+      "npm run check",
+      "git diff --check"
+    ],
+    "findings": [
+      "針對性測試 24/24 通過，完整 npm run check 102/102 通過。",
+      "安全審查確認固定 repository/API/asset path、逐跳 HTTPS host allowlist、timeout/byte hard limits、outer digest 與 bundle 雙層驗證皆 fail closed。",
+      "Temp 與單一 active session lifecycle 覆蓋替換、過期、失敗和重複 cleanup；錯誤不回顯 response/bundle/Authorization 或本機路徑。"
+    ],
+    "residual": "真實 GitHub digest/redirect 平台行為由 TASK-019/TASK-020 staging 驗證；OS 拒絕刪除時 temp cleanup 為 best effort。本卡未建立 route、套用更新或發布 release。"
+  },
+  "comments": []
+}

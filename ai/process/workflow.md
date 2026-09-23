@@ -118,6 +118,9 @@
 - 撰寫程式碼的當下就要套用 `ai/checklists/security-checklist.md`，不是只有正式審查時才做。無論風險等級高低都適用（例如絕不以明文儲存密鑰或密碼）。
 - 範圍改變時停下來詢問。
 - 若這個任務有在 `tools/kanban/` 上追蹤，隨著進度把卡片的階段往前推（見 `ai/process/kanban.md`）。
+  本卡 `cards/<id>.json` 的進度與證據欄位屬於追蹤工作，即使任務卡將
+  `cards/epics` 列為「不得觸碰」，也只保護其他卡片與 Epic 資料；
+  若任務卡明確禁止更新本卡，先指出衝突，交付時說明未同步狀態。
 
 ## Phase 7：驗證（Verification）
 
@@ -148,6 +151,11 @@
 使用 `ai/process/review-gates.md`。
 
 ## Phase 9：人工驗收（Human Acceptance）
+
+交付前若本任務已由看板追蹤，重新讀取本卡 JSON，核對 `stage`、`agent`、
+`links.verificationReport`、`evidence` 與實際成果一致。驗證已完成但
+Code review 或人工驗收未完成時，停在 `verify`，不得標為 `done`；
+若無法更新本卡，在最終回覆明確指出看板仍顯示的階段與原因。
 
 最終回覆必須包含：
 

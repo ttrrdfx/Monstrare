@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>版本更新 Mockup A — 置中摘要 Dialog</title>
+  <link rel="stylesheet" href="./版本更新-mockup.css">
+</head>
+<body data-state="available">
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand"><span class="brand-name">專案管理平台</span><span class="brand-sub">ai/process/kanban.md 的視覺化</span></div>
+      <div class="top-actions">
+        <span class="sync-status">即時同步</span>
+        <button class="update-trigger" type="button" aria-haspopup="dialog"><span class="spark">↑</span><span class="wide-label">檢查</span>更新</button>
+        <div class="view-tabs" role="tablist" aria-label="視圖"><button class="active" type="button">看板</button><button type="button">藍圖</button></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="board" aria-hidden="true">
+    <section class="lane"><div class="lane-head">Backlog <span class="count">3</span></div><article class="task"><span>TASK-014</span><strong>設計版本更新入口</strong></article><article class="task"><span>TASK-015</span><strong>定義 GitHub Release 契約</strong></article></section>
+    <section class="lane"><div class="lane-head">Blocked <span class="count">1</span></div><article class="task"><span>TASK-016</span><strong>等待 UI mockup 核准</strong></article></section>
+    <section class="lane"><div class="lane-head">Ready <span class="count">2</span></div><article class="task"><span>TASK-010</span><strong>升級計畫與 legacy 探測</strong></article></section>
+    <section class="lane"><div class="lane-head">Implementing <span class="count">1/3</span></div><article class="task"><span>TASK-011</span><strong>交易式升級與回復</strong></article></section>
+    <section class="lane"><div class="lane-head">Verify <span class="count">1/2</span></div><article class="task"><span>TASK-013</span><strong>E2E 與發布驗證</strong></article></section>
+    <section class="lane"><div class="lane-head">Done <span class="count">5</span></div><article class="task"><span>TASK-008</span><strong>版本與 manifest 基礎</strong></article></section>
+  </main>
+
+  <div class="scrim"></div>
+  <div class="dialog-wrap">
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <header class="dialog-head">
+        <div><p class="eyebrow">ttrrdfx/Monstrare · <span data-state-label>可更新</span></p><h1 id="dialog-title">版本更新</h1><p class="dialog-copy">先預覽變更與衝突，確認後才會寫入專案。</p></div>
+        <button class="icon-button" type="button" aria-label="關閉">×</button>
+      </header>
+
+      <div class="dialog-body">
+        <div class="state-panel state-available">
+          <div class="status-banner good"><span class="status-icon">✓</span><div><h2>可以安全更新</h2><p>Dry-run 未發現客製衝突，專案資料會保留。</p></div></div>
+          <div class="version-row"><div class="version-card"><small>目前版本</small><strong class="tabular">v1.0.0</strong><span>installed manifest</span></div><span class="version-arrow">→</span><div class="version-card"><small>最新正式版</small><strong class="tabular">v1.1.0</strong><span>GitHub Release · verified</span></div></div>
+          <div class="change-grid"><div class="change-stat"><strong>3</strong><span>新增</span></div><div class="change-stat"><strong>12</strong><span>更新</span></div><div class="change-stat"><strong>1</strong><span>移除</span></div><div class="change-stat"><strong>48</strong><span>保留</span></div><div class="change-stat"><strong>0</strong><span>衝突</span></div></div>
+          <details><summary>查看 16 個將變更的路徑</summary><ul class="path-list"><li>tools/kanban/index.html</li><li>tools/kanban/server.mjs</li><li>ai/process/workflow.md</li><li>scripts/lib/plan.mjs</li></ul></details>
+        </div>
+
+        <div class="state-panel state-loading">
+          <div class="status-banner"><span class="status-icon">↓</span><div><h2>正在安全地檢查新版本</h2><p>目標專案目前保持唯讀。</p></div></div>
+          <div class="loading-stack"><div class="progress-row done"><span class="progress-dot">✓</span><div><strong>查詢最新 GitHub Release</strong><span>v1.1.0</span></div></div><div class="progress-row active"><span class="progress-dot">2</span><div><strong>下載與驗證更新檔</strong><span>SHA-256 與 manifest</span></div><span class="spinner"></span></div><div class="progress-row"><span class="progress-dot">3</span><div><strong>建立唯讀 dry-run</strong><span>尚未開始</span></div></div></div>
+        </div>
+
+        <div class="state-panel state-conflict">
+          <div class="status-banner warn"><span class="status-icon">!</span><div><h2>發現本機客製，更新已阻擋</h2><p>2 個受管理檔案自上次安裝後被修改，不會被覆寫。</p></div></div>
+          <div class="version-row"><div class="version-card"><small>目前版本</small><strong>v1.0.0</strong><span>local modifications</span></div><span class="version-arrow">→</span><div class="version-card"><small>目標版本</small><strong>v1.1.0</strong><span>update blocked</span></div></div>
+          <div class="change-grid"><div class="change-stat"><strong>3</strong><span>新增</span></div><div class="change-stat"><strong>10</strong><span>更新</span></div><div class="change-stat"><strong>1</strong><span>移除</span></div><div class="change-stat"><strong>48</strong><span>保留</span></div><div class="change-stat conflict"><strong>2</strong><span>衝突</span></div></div>
+          <details open><summary>需先處理的衝突</summary><ul class="path-list"><li>tools/kanban/index.html</li><li>tools/kanban/server.mjs</li></ul></details>
+        </div>
+
+        <div class="state-panel state-error"><div class="status-banner crit"><span class="status-icon">×</span><div><h2>無法從 GitHub 檢查更新</h2><p>GitHub 回應逾時。目標專案沒有被修改，可以稍後重試。</p></div></div><details><summary>錯誤詳細資訊</summary><ul class="path-list"><li>GITHUB_RELEASE_TIMEOUT</li><li>repository: ttrrdfx/Monstrare</li></ul></details></div>
+
+        <div class="state-panel state-success"><div class="status-banner good"><span class="status-icon">✓</span><div><h2>已更新至 v1.1.0</h2><p>16 個路徑已變更，專案資料與備份完整保留。</p></div></div><div class="confirmation"><strong>請先重啟看板 server</strong><p>執行中的 process 仍是舊版程式。請回原終端重啟，不要直接重整此頁。</p></div><details><summary>備份位置</summary><ul class="path-list"><li>.monstrare/backups/2026-09-20-v1.0.0-to-v1.1.0/</li></ul></details></div>
+      </div>
+
+      <footer class="dialog-foot state-actions actions-available"><button class="button secondary" type="button">取消</button><button class="button primary" type="button">更新至 v1.1.0</button></footer>
+      <footer class="dialog-foot state-actions actions-loading"><button class="button" type="button" disabled><span class="spinner"></span>檢查中…</button></footer>
+      <footer class="dialog-foot state-actions actions-conflict"><button class="button secondary" type="button">關閉</button><button class="button" type="button" disabled>需先處理 2 個衝突</button></footer>
+      <footer class="dialog-foot state-actions actions-error"><button class="button secondary" type="button">關閉</button><button class="button primary" type="button">重新檢查</button></footer>
+      <footer class="dialog-foot state-actions actions-success"><button class="button primary" type="button">我知道了</button></footer>
+    </section>
+  </div>
+
+  <nav class="demo-switcher" aria-label="Mockup 狀態切換"><button data-demo-state="available" type="button">可更新</button><button data-demo-state="loading" type="button">檢查中</button><button data-demo-state="conflict" type="button">衝突</button><button data-demo-state="error" type="button">錯誤</button><button data-demo-state="success" type="button">成功</button></nav>
+  <script src="./版本更新-mockup.js"></script>
+</body>
+</html>

@@ -9,6 +9,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 
+import {
+  createUpgradeRequestHandler,
+  createUpgradeService,
+  resolveKanbanProjectRoot,
+} from './upgrade-api.mjs';
+
 const HOST = '127.0.0.1';
 const configuredPort = Number(process.env.KANBAN_PORT ?? 4420);
 const PORT = Number.isInteger(configuredPort) && configuredPort >= 0 && configuredPort <= 65535
@@ -18,6 +24,7 @@ let pendingPort = PORT;
 
 const MODULE_ROOT = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
 const ROOT = process.env.KANBAN_ROOT ? path.resolve(process.env.KANBAN_ROOT) : MODULE_ROOT;
+const PROJECT_ROOT = resolveKanbanProjectRoot({ moduleRoot: MODULE_ROOT });
 const CARDS_DIR = path.join(ROOT, 'cards');
 const INDEX_HTML = path.join(ROOT, 'index.html');
 const EPICS_JSON = path.join(ROOT, 'epics.json');
@@ -71,6 +78,16 @@ function sendJson(res, code, obj) {
   res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(body);
 }
+
+const upgradeService = createUpgradeService({ targetRoot: PROJECT_ROOT });
+const handleUpgradeRequest = createUpgradeRequestHandler({
+  service: upgradeService,
+  sendJson,
+  logError(error) {
+    const code = typeof error?.code === 'string' ? error.code : 'UNKNOWN';
+    console.error(`[kanban] 版本更新失敗：${code}`);
+  },
+});
 
 function writeEvent(res, event, data) {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -461,6 +478,8 @@ function handleDelete(res, id) {
 const server = http.createServer(async (req, res) => {
   const pathname = (req.url || '/').split('?')[0];
   try {
+    if (await handleUpgradeRequest(req, res, pathname)) return;
+
     if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(fs.readFileSync(INDEX_HTML));
@@ -530,11 +549,15 @@ server.listen(pendingPort, HOST, () => {
   console.log(`[kanban] 資料目錄：${CARDS_DIR}`);
 });
 
-server.on('close', shutdownRealtime);
+server.on('close', () => {
+  shutdownRealtime();
+  void upgradeService.cleanup();
+});
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
-  process.once(signal, () => {
+  process.once(signal, async () => {
     shutdownRealtime();
+    await upgradeService.cleanup();
     server.close();
   });
 }

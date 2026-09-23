@@ -228,6 +228,8 @@ scripts/check-governance.sh   # self-check from the repo root
 
 Node.js 20 or newer is required. Keep the new source and the target project in separate directories. Fetch and select the release first, then run the upgrader from that source checkout:
 
+The local board's update flow accepts only the fixed-name `monstrare-vX.Y.Z.bundle.json` asset from a **published GitHub Release**, with its digest verified—not a draft, prerelease, or arbitrary checkout. Preview the dry run, inspect conflicts and backups, then confirm the apply separately; run verification and **restart the local board server** afterward. The CLI example below is the existing local-source upgrade path, not the source used by the board. Maintainer instructions for publishing and recovery are in [the release runbook](tools/kanban/docs/releasing.md).
+
 ```bash
 monstrare_source=/absolute/path/to/Monstrare
 target_project=/absolute/path/to/project
@@ -294,3 +296,4 @@ Only a maintainer explicitly publishes a release; this checklist never pushes or
 - Run `npm run check`; confirm legacy, conflict, project-data, fault-injection, migration, `verify`, and post-upgrade API E2E coverage passes.
 - Check both READMEs' commands and local links, keeping version, backup, conflict, and recovery guidance in sync.
 - Review the release diff and `git status`. Create an annotated tag manually (for example, `git tag -a v1.0.0 -m "Monstrare v1.0.0"`) and push it through the team's release process. Do not publish from the upgrader.
+- Pushing the version tag triggers the GitHub Actions published-release bundle workflow. Before pushing, follow [the release runbook](tools/kanban/docs/releasing.md) for version, deterministic build, and asset digest checks; this checklist never creates or pushes a tag automatically.

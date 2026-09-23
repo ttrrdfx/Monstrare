@@ -35,6 +35,10 @@ npm run kanban
 
 瀏覽器開終端機顯示的網址（server 只 bind `127.0.0.1`，預設從 port 4420 開始；若 port 已被占用，會依序嘗試下一個 port）。
 
+看板版本更新只以 GitHub 正式 Release 的固定檔名 bundle asset 為來源，須驗證 digest；
+先 dry-run、檢查衝突與備份，再二次確認套用，驗證後重啟 server。維護者的 tag、
+重跑、digest 與壞 asset 回復流程見[發布維運手冊](docs/releasing.md)。
+
 ## 怎麼操作
 
 - **新增卡片**：點任一車道底部的「+ 新增卡片」，輸入標題即可（id 由 server 自動配號）。
